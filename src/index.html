@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino-2 Electron Client</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <!-- Optional: Add FontAwesome or similar for icons later -->
+</head>
+<body>
+
+    <!-- LOGIN SCREEN (User A) -->
+    <div id="login-screen" class="screen">
+        <div class="login-container">
+            <h1>Casino 777</h1>
+            <form id="login-form">
+                <div class="input-group">
+                    <label>Имя пользователя</label>
+                    <input type="text" id="username" placeholder="Введите логин" required>
+                </div>
+                <div class="input-group">
+                    <label>Пароль</label>
+                    <input type="password" id="password" placeholder="Введите пароль" required>
+                </div>
+                <button type="submit" class="btn-primary">Войти</button>
+            </form>
+            <p id="login-error" style="color: red; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <!-- DASHBOARD (User A Layout) -->
+    <div id="dashboard-screen" class="screen hidden">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="user-profile-widget">
+                <div class="avatar-circle">👤</div>
+                <div id="display-username" class="user-name">Loading...</div>
+                <div id="display-balance" class="user-balance">0 $</div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item active" data-target="profile-view">
+                    <span>📊</span> Профиль
+                </li>
+                <li class="nav-item" data-target="games-view">
+                    <span>🎰</span> Игры
+                </li>
+                <li class="nav-item" data-target="history-view">
+                    <span>📜</span> История
+                </li>
+                <li class="nav-item" id="logout-btn">
+                    <span>🚪</span> Выход
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- VIEW: Profile / Stats (User B Graphs will go here) -->
+            <div id="profile-view" class="view-section active-view">
+                <h2 class="view-header">Статистика игрока</h2>
+                <div class="stats-container">
+                    <!-- Placeholder for Charts (User B) -->
+                    <canvas id="balanceChart" style="background: #16213e; border-radius: 10px; padding: 10px;"></canvas>
+                </div>
+            </div>
+
+            <!-- VIEW: Games Grid (User B) -->
+            <div id="games-view" class="view-section hidden">
+                <h2 class="view-header">Игровой зал</h2>
+                <div class="games-grid" style="display: flex; gap: 20px;">
+                    <!-- Game Cards will be injected or static here -->
+                    <div class="game-card" data-game="slots" style="background: #16213e; padding: 20px; border-radius: 10px; cursor: pointer;">
+                        <h3>🎰 Слоты</h3>
+                        <p>Испытай удачу!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: History Table (User A) -->
+            <div id="history-view" class="view-section hidden">
+                <h2 class="view-header">История транзакций</h2>
+                <table class="data-table" id="history-table">
+                    <thead>
+                        <tr>
+                            <th>Время</th>
+                            <th>Игра</th>
+                            <th>Тип</th>
+                            <th>Сумма</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- GAME OVERLAY (User B) -->
+            <div id="game-container" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                 <button id="close-game" style="position: absolute; top: 20px; right: 20px; padding: 10px 20px; background: red; color: white; border: none; cursor: pointer;">Закрыть</button>
+                 <div id="game-render-area">
+                     <!-- Game UI injected here -->
+                 </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="renderer.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+/* Color Palette based on Casino Theme */
+:root {
+    --primary-dark: #1a1a2e;
+    --secondary-dark: #16213e;
+    --accent-red: #e94560;
+    --accent-gold: #ffd700;
+    --text-white: #ffffff;
+    --text-muted: #a0a0a0;
+}
+
+/* Reset & Base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--primary-dark);
+    color: var(--text-white);
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* Auth Screen - User A Task */
+#login-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: radial-gradient(circle at center, #2a2a4e 0%, #1a1a2e 100%);
+}
+
+.login-container {
+    background: var(--secondary-dark);
+    padding: 3rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    text-align: center;
+    width: 400px;
+    border: 1px solid #333;
+}
+
+.login-container h1 {
+    color: var(--accent-red);
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    background: #0f172a;
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: white;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--accent-red);
+}
+
+.btn-primary {
+    background: var(--accent-red);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.3s;
+    width: 100%;
+    text-transform: uppercase;
+}
+
+.btn-primary:hover {
+    background: #ff2e4d;
+    transform: translateY(-2px);
+}
+
+/* Dashboard Layout - User A Task */
+#dashboard-screen {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 280px;
+    background: var(--secondary-dark);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #333;
+}
+
+.user-profile-widget {
+    padding: 2rem;
+    text-align: center;
+    border-bottom: 1px solid #333;
+}
+
+.avatar-circle {
+    width: 100px;
+    height: 100px;
+    background: #333;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    border: 3px solid var(--accent-gold);
+}
+
+.user-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.user-balance {
+    color: var(--accent-gold);
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 1rem 0;
+}
+
+.nav-item {
+    padding: 15px 2rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-item:hover, .nav-item.active {
+    background: rgba(233, 69, 96, 0.1);
+    color: var(--accent-red);
+    border-right: 3px solid var(--accent-red);
+}
+
+/* Content Area */
+.main-content {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    background: radial-gradient(circle at top right, #252540 0%, #1a1a2e 40%);
+}
+
+.view-header {
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 1rem;
+}
+
+/* History Table - User A Task */
+.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--secondary-dark);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.data-table th {
+    background: #0f172a;
+    padding: 15px;
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.data-table td {
+    padding: 15px;
+    border-bottom: 1px solid #333;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.amount-positive { color: #4caf50; }
+.amount-negative { color: #f44336; }
+
+/* Utilities */
+.hidden { display: none !important; }
+.active-view { display: block !important; }

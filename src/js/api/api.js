@@ -1,0 +1,21 @@
+// Wrapper for the secure bridge exposed in preload.js
+
+export const api = {
+    async login(username, password) {
+        // Calls the Main process which then talks to DB
+        return await window.electronAPI.login({ username, password });
+    },
+
+    async spinSlots(betAmount) {
+        // Calls Main process -> Logic -> DB
+        return await window.electronAPI.spinSlots(betAmount);
+    },
+    
+    async getHistory(profileId) {
+        return await window.electronAPI.getHistory(profileId);
+    },
+
+    onBalanceUpdate(callback) {
+        window.electronAPI.onUpdateBalance(callback);
+    }
+};
