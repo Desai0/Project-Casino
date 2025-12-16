@@ -30,6 +30,10 @@ body {
     overflow: hidden;
 }
 
+/* Utilities */
+.hidden { display: none !important; }
+.active-view { display: block !important; }
+
 /* --- TOP HEADER (Visible on all screens) --- */
 .app-header {
     height: 60px;
