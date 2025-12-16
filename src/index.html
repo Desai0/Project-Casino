@@ -1,134 +1,170 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Casino-2 Client</title>
+    <title>Casino Client</title>
     <link rel="stylesheet" href="assets/css/styles.css">
-    <!-- Using emoji icons for now, can replace with SVG/FontAwesome -->
+    <!-- Chart.js for graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-    <!-- LOGIN SCREEN -->
+    <!-- LOGIN OVERLAY -->
     <div id="login-screen">
-        <div class="login-card">
-            <h1>Casino-2</h1>
+        <div class="login-box">
+            <h1 style="margin-bottom:20px; font-family: var(--font-serif);">CASINO</h1>
             <form id="login-form">
-                <input type="text" id="username" class="login-input" placeholder="Username" required />
-                <input type="password" id="password" class="login-input" placeholder="Password" required />
-                <button type="submit" class="btn-login">ENTER CASINO</button>
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit">ENTER</button>
             </form>
-            <div id="login-error" style="color: #e91e63; margin-top: 20px; font-size: 0.9rem;"></div>
+            <p id="login-error" style="color:red; margin-top:10px;"></p>
         </div>
     </div>
 
-    <!-- DASHBOARD -->
-    <div id="dashboard-screen" class="hidden">
-        
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="profile-summary">
-                <div class="avatar">M</div>
-                <div class="username" id="display-username">Player</div>
-                <div class="balance-badge">
-                    <span>$</span> <span id="display-balance">0.00</span>
-                </div>
+    <!-- APP HEADER (Always visible after login) -->
+    <header id="app-header" class="app-header hidden">
+        <div class="header-user-section">
+            <div class="header-avatar" id="header-avatar">M</div>
+            <div class="header-balance-pill">
+                <span>$</span> <span id="header-balance">0</span>
             </div>
+        </div>
+        
+        <nav class="nav-tabs">
+            <div class="nav-tab active" data-target="profile-screen">Profile</div>
+            <div class="nav-tab" data-target="menu-screen">Games</div>
+            <div class="nav-tab" id="logout-btn">Logout</div>
+        </nav>
+        
+        <!-- Three dots menu icon from screenshot? optional -->
+    </header>
 
-            <ul class="nav-menu">
-                <li class="nav-item active" data-target="profile-view">
-                    <span class="nav-icon">📊</span> Profile
-                </li>
-                <li class="nav-item" data-target="games-view">
-                    <span class="nav-icon">🎰</span> Games
-                </li>
-                <li class="nav-item" data-target="history-view">
-                    <span class="nav-icon">📜</span> History
-                </li>
-                <li class="nav-item" id="logout-btn" style="margin-top: auto;">
-                    <span class="nav-icon">🚪</span> Logout
-                </li>
-            </ul>
-        </aside>
+    <!-- MAIN CONTENT -->
+    <div id="main-wrapper" class="main-content hidden">
 
-        <!-- Main Content -->
-        <main class="main-content">
+        <!-- PROFILE SCREEN -->
+        <div id="profile-screen" class="screen-section active">
             
-            <!-- PROFILE / STATS VIEW -->
-            <div id="profile-view" class="active-view">
-                <h2 class="page-title">Profile Statistics</h2>
-                <div class="stats-grid">
-                    <!-- Graph Area (User B) -->
-                    <div class="chart-container">
-                        <canvas id="balanceChart"></canvas>
-                        <!-- User B needs to init Chart.js here -->
+            <div class="profile-grid">
+                <!-- Left: Graph -->
+                <div class="profile-left">
+                    <div class="profile-header-info">
+                        <div class="big-username" id="profile-username">[Username]</div>
+                        <div class="big-balance-pill">
+                            Balance: <span id="profile-balance">2 007</span> <span>$</span>
+                        </div>
                     </div>
                     
-                    <!-- Mini History List -->
-                    <div class="history-mini-widget">
-                        <h3 style="margin-bottom: 20px; font-size: 1rem; color: #b0bec5;">Recent Activity</h3>
-                        <table style="font-size: 0.85rem;">
-                             <tbody id="mini-history-body">
-                                 <!-- JS Injected -->
-                             </tbody>
-                        </table>
+                    <div class="graph-container">
+                        <canvas id="balanceChart"></canvas>
+                        <!-- User B task: Implement graph logic -->
+                    </div>
+                </div>
+
+                <!-- Right: History -->
+                <div class="profile-right">
+                    <div class="history-title">Balance history:</div>
+                    <div class="history-list" id="history-list">
+                        <!-- Items will be injected by JS -->
+                        <!-- Example item for structure:
+                        <div class="history-card">
+                            <div class="history-icon">♠️</div>
+                            <div class="history-info">
+                                <div class="history-game-name">21</div>
+                                <div class="history-date">Date: 2007.06.09</div>
+                            </div>
+                            <div class="history-amount win-text">+ 436,2 $</div>
+                        </div>
+                        -->
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- GAMES GRID VIEW -->
-            <div id="games-view" class="hidden">
-                <h2 class="page-title">Select Game</h2>
-                <div class="games-grid">
-                    <div class="game-card" data-game="slots">
-                        <div class="game-icon">🍒</div>
-                        <div class="game-title">Slots</div>
+        <!-- MAIN MENU SCREEN (Games) -->
+        <div id="menu-screen" class="screen-section">
+            <div class="menu-grid">
+                <!-- Column 1: 21 -->
+                <div class="menu-column">
+                    <div class="menu-col-header">21</div>
+                    <div class="games-list">
+                        <div class="game-item" onclick="launchGame('blackjack')">
+                            <div class="game-thumb-icon">♠️</div>
+                        </div>
+                         <div class="game-item"><div class="game-thumb-icon">♠️</div></div>
+                         <div class="game-item"><div class="game-thumb-icon">♠️</div></div>
+                         <div class="game-item"><div class="game-thumb-icon">♠️</div></div>
                     </div>
-                    <div class="game-card" data-game="blackjack">
-                        <div class="game-icon">♠️</div>
-                        <div class="game-title">Blackjack (21)</div>
+                </div>
+                
+                <!-- Column 2: Roulette -->
+                <div class="menu-column">
+                    <div class="menu-col-header">Roulette</div>
+                    <div class="games-list">
+                        <div class="game-item" onclick="launchGame('roulette')">
+                             <div class="game-thumb-icon">🔴</div>
+                        </div>
+                        <div class="game-item"><div class="game-thumb-icon">🔴</div></div>
+                        <div class="game-item"><div class="game-thumb-icon">🔴</div></div>
+                        <div class="game-item"><div class="game-thumb-icon">🔴</div></div>
                     </div>
-                    <div class="game-card" data-game="roulette">
-                        <div class="game-icon">🔴</div>
-                        <div class="game-title">Roulette</div>
+                </div>
+
+                <!-- Column 3: Slots -->
+                <div class="menu-column">
+                    <div class="menu-col-header">Slots</div>
+                    <div class="games-list">
+                        <div class="game-item" onclick="launchGame('slots')">
+                             <div class="game-thumb-icon">🍒</div>
+                        </div>
+                        <div class="game-item"><div class="game-thumb-icon">🍒</div></div>
+                        <div class="game-item"><div class="game-thumb-icon">🍒</div></div>
+                        <div class="game-item"><div class="game-thumb-icon">🍒</div></div>
+                        <div class="game-item"><div class="game-thumb-icon">🍒</div></div>
+                        <div class="game-item"><div class="game-thumb-icon">🍒</div></div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- HISTORY VIEW -->
-            <div id="history-view" class="hidden">
-                <h2 class="page-title">Transaction History</h2>
-                <div class="table-container">
-                    <table id="history-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Game</th>
-                                <th>Type</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- JS Injected -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </main>
     </div>
 
-    <!-- GAME OVERLAY (User B) -->
-    <div id="game-container" class="game-overlay hidden">
-        <div class="game-header">
-            <span style="font-weight: bold;">Currently Playing</span>
-            <button id="close-game" class="close-btn">Exit Game</button>
-        </div>
-        <div id="game-render-area">
-            <!-- User B renders Slots/Cards here -->
+    <!-- GAME CONTAINER (Overlay) -->
+    <div id="game-container" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:5000;">
+        <button id="close-game" style="position:absolute; top:20px; right:20px; z-index:5001;">EXIT</button>
+        <div id="game-render-area" style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; color:white;">
+            <!-- User B Game Area -->
         </div>
     </div>
 
     <script src="renderer.js" type="module"></script>
+    <script>
+        // Simple tab switcher helper
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                if(tab.id === 'logout-btn') return;
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                document.querySelectorAll('.screen-section').forEach(s => s.classList.remove('active'));
+                document.getElementById(tab.getAttribute('data-target')).classList.add('active');
+            });
+        });
+
+        // Launch helper (Global for onclick)
+        window.launchGame = (type) => {
+            document.getElementById('game-container').classList.remove('hidden');
+            document.getElementById('game-render-area').innerHTML = `<h1>Playing ${type}</h1>`;
+            // Trigger API/User B logic here
+            import('./js/api/api.js').then(module => {
+                 if(type === 'slots') module.api.spinSlots(10); // Demo spin
+            });
+        }
+        document.getElementById('close-game').addEventListener('click', () => {
+            document.getElementById('game-container').classList.add('hidden');
+        });
+    </script>
 </body>
 </html>

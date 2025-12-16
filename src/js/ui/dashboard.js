@@ -1,80 +1,73 @@
 import { api } from '../api/api.js';
 
 export function showDashboard(user) {
-    // Hide Login, Show Dashboard
+    // Hide Login
     document.getElementById('login-screen').classList.add('hidden');
-    const dashboard = document.getElementById('dashboard-screen');
-    dashboard.classList.remove('hidden');
     
-    // Fill User Info
-    document.getElementById('display-username').textContent = user.name;
-    document.getElementById('display-balance').textContent = `${user.balance} $`;
+    // Show Header and Main Wrapper
+    document.getElementById('app-header').classList.remove('hidden');
+    document.getElementById('main-wrapper').classList.remove('hidden');
 
-    setupNavigation(user.id);
+    // Update Header Info
+    document.getElementById('header-avatar').textContent = user.name.charAt(0).toUpperCase();
+    document.getElementById('header-balance').textContent = user.balance;
+
+    // Update Profile Info
+    document.getElementById('profile-username').textContent = `[${user.name}]`;
+    document.getElementById('profile-balance').textContent = formatMoney(user.balance);
+
     loadHistory(user.id);
 }
 
-function setupNavigation(userId) {
-    const navItems = document.querySelectorAll('.nav-item');
-    const views = document.querySelectorAll('.view-section');
-
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            if (item.id === 'logout-btn') {
-                location.reload();
-                return;
-            }
-
-            // Update Menu Active State
-            navItems.forEach(n => n.classList.remove('active'));
-            item.classList.add('active');
-
-            // Show Target View
-            const targetId = item.getAttribute('data-target');
-            views.forEach(v => {
-                if (v.id === targetId) {
-                    v.classList.remove('hidden');
-                    v.classList.add('active-view');
-                    if (targetId === 'history-view') loadHistory(userId);
-                } else {
-                    v.classList.remove('active-view');
-                    v.classList.add('hidden');
-                }
-            });
-        });
-    });
+function formatMoney(amount) {
+    // Adds spaces (e.g. 2 007)
+    return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
 async function loadHistory(userId) {
-    const tbody = document.querySelector('#history-table tbody');
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Загрузка данных...</td></tr>';
+    const listContainer = document.getElementById('history-list');
+    listContainer.innerHTML = '<div style="text-align:center; color:#666;">Loading...</div>';
     
     try {
         const rows = await api.getHistory(userId);
-        tbody.innerHTML = '';
+        listContainer.innerHTML = '';
         
         if (!rows || rows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: #a0a0a0;">История игр пуста</td></tr>';
+            listContainer.innerHTML = '<div style="text-align:center; color:#666;">No history found</div>';
             return;
         }
 
         rows.forEach(row => {
-            const tr = document.createElement('tr');
             const isWin = row.money_win_lose_ammount >= 0;
+            const amountClass = isWin ? 'win-text' : 'loss-text';
             const sign = row.money_win_lose_ammount > 0 ? '+' : '';
-            
-            tr.innerHTML = `
-                <td>${row.timestamp}</td>
-                <td>${row.game_name || 'Игра'}</td>
-                <td>${isWin ? 'Выигрыш' : 'Ставка'}</td>
-                <td class="${isWin ? 'amount-positive' : 'amount-negative'}">
-                    ${sign}${row.money_win_lose_ammount} $
-                </td>
+            const icon = getGameIcon(row.game_name);
+            const dateStr = new Date(row.timestamp).toLocaleDateString().replace(/\//g, '.'); // Approx format
+
+            const card = document.createElement('div');
+            card.className = 'history-card';
+            card.innerHTML = `
+                <div class="history-icon">${icon}</div>
+                <div class="history-info">
+                    <div class="history-game-name">${row.game_name || 'Game'}</div>
+                    <div class="history-date">Date: ${row.timestamp}</div>
+                </div>
+                <div class="history-amount ${amountClass}">
+                    ${sign} ${row.money_win_lose_ammount} $
+                </div>
             `;
-            tbody.appendChild(tr);
+            listContainer.appendChild(card);
         });
     } catch (err) {
-        console.error("History Error:", err);
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: red;">Ошибка связи с сервером</td></tr>';
+        console.error(err);
+        listContainer.innerHTML = '<div style="text-align:center; color:red;">Error loading history</div>';
     }
+}
+
+function getGameIcon(name) {
+    const n = (name || '').toLowerCase();
+    if (n.includes('slot')) return '🍒';
+    if (n.includes('black') || n.includes('21')) return '♠️';
+    if (n.includes('roulette')) return '🔴';
+    return '🎲';
 }
