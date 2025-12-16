@@ -153,18 +153,7 @@
             });
         });
 
-        // Launch helper (Global for onclick)
-        window.launchGame = (type) => {
-            document.getElementById('game-container').classList.remove('hidden');
-            document.getElementById('game-render-area').innerHTML = `<h1>Playing ${type}</h1>`;
-            // Trigger API/User B logic here
-            import('./js/api/api.js').then(module => {
-                 if(type === 'slots') module.api.spinSlots(10); // Demo spin
-            });
-        }
-        document.getElementById('close-game').addEventListener('click', () => {
-            document.getElementById('game-container').classList.add('hidden');
-        });
+        // Launch helper будет определен в games.js
     </script>
 </body>
 </html>

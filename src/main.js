@@ -71,14 +71,14 @@ ipcMain.handle('api:login', async (event, { username, password }) => {
     }
 });
 
-// 2. Game Spin Handler
+// 2. Game Spin Handler (Slots)
 ipcMain.handle('game:spin', async (event, betAmount) => {
     console.log('Main Process: Spinning with bet', betAmount);
     
     // MOCK Logic for result (C++ DLL would go here)
-    const reel1 = Math.floor(Math.random() * 5);
-    const reel2 = Math.floor(Math.random() * 5);
-    const reel3 = Math.floor(Math.random() * 5);
+    const reel1 = Math.floor(Math.random() * 7); // 0-6 для 7 символов
+    const reel2 = Math.floor(Math.random() * 7);
+    const reel3 = Math.floor(Math.random() * 7);
     const isWin = (reel1 === reel2 && reel2 === reel3);
     const winAmount = isWin ? betAmount * 10 : 0;
     const moneyChange = winAmount - betAmount; // Net change
@@ -103,6 +103,42 @@ ipcMain.handle('game:spin', async (event, betAmount) => {
         };
     } catch (err) {
         console.error("Spin Transaction failed:", err);
+        return { success: false, error: err.message };
+    }
+});
+
+// 2b. Blackjack Handler
+ipcMain.handle('game:blackjack', async (event, { action, betAmount, gameState }) => {
+    console.log('Main Process: Blackjack action', action, 'bet', betAmount);
+    
+    try {
+        const profileId = 1;
+        const gameId = 2; // Assuming Blackjack is game_id 2
+        
+        if (action === 'deal') {
+            // Начало новой игры - пока не записываем в БД
+            return { success: true, message: 'Game started' };
+        } else if (action === 'end') {
+            // Конец игры - записываем результат
+            const { result, winAmount } = gameState;
+            const moneyChange = winAmount - betAmount;
+            
+            await db.rounds.recordRound({
+                profileId,
+                gameId,
+                moneyWinLoseAmount: moneyChange
+            });
+            
+            return {
+                success: true,
+                balanceChange: moneyChange,
+                result: result
+            };
+        }
+        
+        return { success: true };
+    } catch (err) {
+        console.error("Blackjack Transaction failed:", err);
         return { success: false, error: err.message };
     }
 });

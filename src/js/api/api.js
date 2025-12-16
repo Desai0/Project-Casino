@@ -11,6 +11,11 @@ export const api = {
         return await window.electronAPI.spinSlots(betAmount);
     },
     
+    async playBlackjack(action, betAmount, gameState) {
+        // Calls Main process for blackjack actions
+        return await window.electronAPI.playBlackjack(action, betAmount, gameState);
+    },
+    
     async getHistory(profileId) {
         return await window.electronAPI.getHistory(profileId);
     },

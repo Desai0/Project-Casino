@@ -344,3 +344,349 @@ body {
     font-size: 0.65rem;
     color: var(--text-muted);
 }
+
+/* --- GAME STYLES --- */
+#game-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-dark);
+    z-index: 5000;
+    display: flex;
+    flex-direction: column;
+}
+
+#close-game {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 5001;
+    background: var(--bg-card);
+    color: var(--text-white);
+    border: 1px solid #3d3838;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+#close-game:hover {
+    background: #3d3838;
+}
+
+#game-render-area {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-white);
+    position: relative;
+}
+
+.game-loading, .game-placeholder {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+}
+
+/* SLOTS MACHINE */
+.slots-machine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    background: var(--bg-panel);
+    padding: 40px;
+    border-radius: 12px;
+    border: 2px solid #3d3838;
+    min-width: 500px;
+}
+
+.slots-header {
+    text-align: center;
+}
+
+.slots-header h2 {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: var(--text-white);
+}
+
+.balance-display {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+}
+
+.reels-container {
+    display: flex;
+    gap: 20px;
+    background: var(--bg-dark);
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #2a2626;
+}
+
+.reel {
+    width: 80px;
+    height: 120px;
+    background: var(--bg-card);
+    border: 2px solid #3d3838;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.reel-symbols {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.symbol {
+    font-size: 3rem;
+    line-height: 1;
+    padding: 10px 0;
+}
+
+.symbol.active {
+    background: rgba(76, 175, 80, 0.2);
+    border-radius: 4px;
+}
+
+@keyframes spin {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-100px); }
+}
+
+.slots-controls {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.bet-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-white);
+}
+
+.bet-controls input {
+    width: 80px;
+    padding: 8px;
+    background: var(--bg-card);
+    border: 1px solid #3d3838;
+    color: var(--text-white);
+    border-radius: 4px;
+    text-align: center;
+}
+
+.spin-button {
+    background: var(--accent-green);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.spin-button:hover:not(:disabled) {
+    background: #45a049;
+}
+
+.spin-button:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+/* BLACKJACK */
+.blackjack-table {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    background: var(--bg-panel);
+    padding: 40px;
+    border-radius: 12px;
+    border: 2px solid #3d3838;
+    min-width: 700px;
+    max-width: 900px;
+}
+
+.blackjack-header {
+    text-align: center;
+}
+
+.blackjack-header h2 {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: var(--text-white);
+}
+
+.game-area {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.dealer-area, .player-area {
+    text-align: center;
+}
+
+.dealer-area h3, .player-area h3 {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+    color: var(--text-white);
+}
+
+.card-area {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-height: 100px;
+    align-items: center;
+}
+
+.card {
+    width: 60px;
+    height: 85px;
+    background: white;
+    color: black;
+    border: 2px solid #333;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    animation: cardDeal 0.3s ease-out;
+}
+
+.card-hidden {
+    background: var(--bg-dark);
+    color: var(--text-white);
+    font-size: 2rem;
+}
+
+@keyframes cardDeal {
+    from {
+        transform: translateY(-50px) rotateY(180deg);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) rotateY(0);
+        opacity: 1;
+    }
+}
+
+.blackjack-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+.game-actions {
+    display: flex;
+    gap: 20px;
+}
+
+.action-button {
+    background: var(--bg-card);
+    color: var(--text-white);
+    border: 1px solid #3d3838;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.action-button:hover {
+    background: #3d3838;
+}
+
+.action-button:active {
+    background: #4d4848;
+}
+
+/* GAME RESULTS */
+.game-result {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.win-message {
+    color: var(--accent-green);
+    animation: winPulse 0.5s ease-in-out;
+}
+
+.lose-message {
+    color: var(--accent-red);
+}
+
+@keyframes winPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes winFloat {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+    }
+    20% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -200%) scale(1);
+        opacity: 0;
+    }
+}
+
+.win-effect {
+    animation: winFloat 2s ease-out forwards;
+}
+
+/* Исправление для game-item в меню */
+.game-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 15px;
+    background-color: var(--bg-card);
+    border-radius: 8px;
+    transition: background 0.2s;
+    aspect-ratio: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-item:hover {
+    background-color: #383434;
+}
+
+.game-thumb-icon {
+    font-size: 2.5rem;
+    color: #ccc;
+}
