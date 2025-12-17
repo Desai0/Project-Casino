@@ -75,35 +75,54 @@ ipcMain.handle('api:login', async (event, { username, password }) => {
 ipcMain.handle('game:spin', async (event, betAmount) => {
     console.log('Main Process: Spinning with bet', betAmount);
     
-    // MOCK Logic for result (C++ DLL would go here)
-    const reel1 = Math.floor(Math.random() * 7); // 0-6 для 7 символов
-    const reel2 = Math.floor(Math.random() * 7);
-    const reel3 = Math.floor(Math.random() * 7);
-    const isWin = (reel1 === reel2 && reel2 === reel3);
-    const winAmount = isWin ? betAmount * 10 : 0;
-    const moneyChange = winAmount - betAmount; // Net change
-
-    // Record in DB
     try {
-        // Assuming profileId 1 for now (should come from session/context)
-        const profileId = 1; 
-        const gameId = 1; // Assuming Slots is game_id 1
+        // MOCK Logic for result (C++ DLL would go here)
+        const reel1 = Math.floor(Math.random() * 7); // 0-6 для 7 символов
+        const reel2 = Math.floor(Math.random() * 7);
+        const reel3 = Math.floor(Math.random() * 7);
+        const isWin = (reel1 === reel2 && reel2 === reel3);
+        const winAmount = isWin ? betAmount * 10 : 0;
+        const moneyChange = winAmount - betAmount; // Net change
+
+        console.log('Spin results:', { reel1, reel2, reel3, isWin, winAmount, moneyChange });
+
+        // Record in DB (try-catch внутри для изоляции ошибок БД)
+        try {
+            // Assuming profileId 1 for now (should come from session/context)
+            const profileId = 1; 
+            const gameId = 1; // Assuming Slots is game_id 1
+            
+            await db.rounds.recordRound({
+                profileId, 
+                gameId, 
+                moneyWinLoseAmount: moneyChange 
+            });
+            
+            console.log('DB record successful');
+        } catch (dbErr) {
+            console.error("DB Transaction failed (continuing anyway):", dbErr);
+            // Не прерываем игру из-за ошибки БД
+        }
         
-        await db.rounds.recordRound({
-            profileId, 
-            gameId, 
-            moneyWinLoseAmount: moneyChange 
-        });
-        
-        return {
+        const result = {
             success: true,
             result: [reel1, reel2, reel3],
             win: winAmount,
             balanceChange: moneyChange
         };
+        
+        console.log('Returning result:', result);
+        return result;
+        
     } catch (err) {
-        console.error("Spin Transaction failed:", err);
-        return { success: false, error: err.message };
+        console.error("Spin Handler failed:", err);
+        return { 
+            success: false, 
+            error: err.message,
+            result: [0, 0, 0],
+            win: 0,
+            balanceChange: 0
+        };
     }
 });
 
@@ -139,6 +158,39 @@ ipcMain.handle('game:blackjack', async (event, { action, betAmount, gameState })
         return { success: true };
     } catch (err) {
         console.error("Blackjack Transaction failed:", err);
+        return { success: false, error: err.message };
+    }
+});
+
+// 2c. Roulette Handler
+ipcMain.handle('game:roulette', async (event, { action, betAmount, gameState }) => {
+    console.log('Main Process: Roulette action', action, 'bet', betAmount);
+    
+    try {
+        const profileId = 1;
+        const gameId = 3; // Assuming Roulette is game_id 3
+        
+        if (action === 'end') {
+            // Конец игры - записываем результат
+            const { winAmount, result } = gameState;
+            const moneyChange = winAmount - betAmount;
+            
+            await db.rounds.recordRound({
+                profileId,
+                gameId,
+                moneyWinLoseAmount: moneyChange
+            });
+            
+            return {
+                success: true,
+                balanceChange: moneyChange,
+                result: result
+            };
+        }
+        
+        return { success: true };
+    } catch (err) {
+        console.error("Roulette Transaction failed:", err);
         return { success: false, error: err.message };
     }
 });

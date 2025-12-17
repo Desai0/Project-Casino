@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Game Methods
   spinSlots: (bet) => ipcRenderer.invoke('game:spin', bet),
   playBlackjack: (action, betAmount, gameState) => ipcRenderer.invoke('game:blackjack', { action, betAmount, gameState }),
+  playRoulette: (action, betAmount, gameState) => ipcRenderer.invoke('game:roulette', { action, betAmount, gameState }),
   
   // User/Auth Methods
   login: (credentials) => ipcRenderer.invoke('api:login', credentials),
