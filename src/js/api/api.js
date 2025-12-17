@@ -2,27 +2,27 @@
 
 export const api = {
     async login(username, password) {
-        // Calls the Main process which then talks to DB
         return await window.electronAPI.login({ username, password });
     },
 
+    async register(username, password, nickname) {
+        return await window.electronAPI.register({ username, password, nickname });
+    },
+
     async spinSlots(betAmount) {
-        // Calls Main process -> Logic -> DB
         return await window.electronAPI.spinSlots(betAmount);
-    },
-    
-    async playBlackjack(action, betAmount, gameState) {
-        // Calls Main process for blackjack actions
-        return await window.electronAPI.playBlackjack(action, betAmount, gameState);
-    },
-    
-    async playRoulette(action, betAmount, gameState) {
-        // Calls Main process for roulette actions
-        return await window.electronAPI.playRoulette(action, betAmount, gameState);
     },
     
     async getHistory(profileId) {
         return await window.electronAPI.getHistory(profileId);
+    },
+
+    async updateNickname(profileId, nickname) {
+        return await window.electronAPI.updateNickname({ profileId, nickname });
+    },
+
+    async updateAvatar(profileId, avatarPath) {
+        return await window.electronAPI.updateAvatar({ profileId, avatarPath });
     },
 
     onBalanceUpdate(callback) {

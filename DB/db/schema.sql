@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS permissions (
 CREATE TABLE IF NOT EXISTS players (
   profile_id       INTEGER PRIMARY KEY,
   role_id          INTEGER NOT NULL REFERENCES roles(role_id) ON DELETE RESTRICT,
+  username         TEXT    NOT NULL UNIQUE,
   nickname         TEXT    NOT NULL UNIQUE,
   hashed_pass      TEXT    NOT NULL,
   current_balance  INTEGER NOT NULL DEFAULT 0 CHECK (current_balance >= 0),

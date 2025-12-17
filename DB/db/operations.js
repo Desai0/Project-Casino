@@ -1,13 +1,14 @@
 const db = require('./init');
 
-// Форматирование timestamp в формат [год].[месяц].[день]:[час:минута]
+// Форматирование timestamp в формат [год].[месяц].[день]:[час:минута:секунда]
 function formatTimestamp(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${year}.${month}.${day}:${hours}:${minutes}`;
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}.${month}.${day}:${hours}:${minutes}:${seconds}`;
 }
 
 // Запись раунда: обновление баланса на основе money_win_lose_ammount
@@ -85,7 +86,7 @@ function getHistory(profileId, { limit = 50, offset = 0 } = {}) {
        JOIN games g ON r.game_id = g.game_id
        JOIN game_categories c ON g.category_id = c.category_id
        WHERE r.profile_id = ?
-       ORDER BY r.timestamp DESC
+       ORDER BY r.timestamp DESC, r.round_id DESC
        LIMIT ? OFFSET ?`,
       [profileId, limit, offset],
       (err, rows) => (err ? reject(err) : resolve(rows))

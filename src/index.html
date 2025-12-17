@@ -15,7 +15,7 @@
         <div class="login-box">
             <h1 style="margin-bottom:20px; font-family: var(--font-serif);">CASINO</h1>
             <form id="login-form">
-                <input type="text" id="username" placeholder="Username" required>
+                <input type="text" id="username" placeholder="Login" required>
                 <input type="password" id="password" placeholder="Password" required>
                 <button type="submit">ENTER</button>
             </form>
@@ -51,9 +51,23 @@
                 <!-- Left: Graph -->
                 <div class="profile-left">
                     <div class="profile-header-info">
-                        <div class="big-username" id="profile-username">[Username]</div>
-                        <div class="big-balance-pill">
-                            Balance: <span id="profile-balance">2 007</span> <span>$</span>
+                        <div class="profile-avatar-section">
+                            <div class="profile-avatar-container">
+                                <img id="profile-avatar-img" src="" alt="Avatar" class="profile-avatar-image hidden">
+                                <div class="profile-avatar-placeholder" id="profile-avatar-placeholder">M</div>
+                                <input type="file" id="avatar-upload" accept="image/*" style="display:none;">
+                                <label for="avatar-upload" class="avatar-upload-label" title="Change avatar">📷</label>
+                            </div>
+                            <div class="profile-name-section">
+                                <div class="big-username-container">
+                                    <div class="big-username" id="profile-username">[Username]</div>
+                                    <button id="edit-nickname-btn" class="edit-btn" title="Edit nickname">✏️</button>
+                                </div>
+                                <input type="text" id="nickname-edit-input" class="nickname-edit-input hidden" placeholder="Enter nickname">
+                                <div class="big-balance-pill">
+                                    Balance: <span id="profile-balance">2 007</span> <span>$</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -139,12 +153,26 @@
         </div>
     </div>
 
-    <script src="renderer.js" type="module"></script>
-    <script>
+            <script src="renderer.js" type="module"></script>
+            <script>
         // Simple tab switcher helper
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', () => {
-                if(tab.id === 'logout-btn') return;
+                if(tab.id === 'logout-btn') {
+                    // Logout functionality
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    document.getElementById('app-header').classList.add('hidden');
+                    document.getElementById('main-wrapper').classList.add('hidden');
+                    // Clear form
+                    const loginForm = document.getElementById('login-form');
+                    if(loginForm) {
+                        loginForm.reset();
+                    }
+                    // Clear user data
+                    window.currentUserId = null;
+                    window.currentUser = null;
+                    return;
+                }
                 document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 
@@ -153,7 +181,7 @@
             });
         });
 
-        // Launch helper будет определен в games.js
+        // launchGame определен в games.js через window.launchGame
     </script>
 </body>
 </html>

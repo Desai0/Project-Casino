@@ -44,11 +44,14 @@ function renderSlots(container) {
     // Массив символов - делаем константой для доступа из всех функций
     const SLOT_SYMBOLS = ['🍒', '🍋', '🍊', '🍇', '⭐', '💎', '7️⃣'];
     
+    // Получаем текущий баланс из хедера
+    const currentBalance = document.getElementById('header-balance').textContent.replace(/\s/g, '');
+    
     container.innerHTML = `
         <div class="slots-machine">
             <div class="slots-header">
                 <h2>SLOT MACHINE</h2>
-                <div class="balance-display">Balance: $<span id="game-balance">1000</span></div>
+                <div class="balance-display">Balance: $<span id="game-balance">${currentBalance}</span></div>
             </div>
             
             <div class="reels-container">
@@ -144,11 +147,14 @@ function renderSlots(container) {
 
 // Блэкджек
 function renderBlackjack(container) {
+    // Получаем текущий баланс из хедера
+    const currentBalance = document.getElementById('header-balance').textContent.replace(/\s/g, '');
+    
     container.innerHTML = `
         <div class="blackjack-table">
             <div class="blackjack-header">
                 <h2>BLACKJACK</h2>
-                <div class="balance-display">Balance: $<span id="game-balance">1000</span></div>
+                <div class="balance-display">Balance: $<span id="game-balance">${currentBalance}</span></div>
             </div>
             
             <div class="game-area">
@@ -332,6 +338,7 @@ function showSlotResult(result) {
     
     const win = result.win || 0;
     const balanceChange = result.balanceChange || 0;
+    const newBalance = result.newBalance;
     
     if (win > 0) {
         resultDiv.innerHTML = `<div class="win-message">🎉 WIN: $${win}! 🎉</div>`;
@@ -343,8 +350,21 @@ function showSlotResult(result) {
         playSound('lose');
     }
     
-    // Обновить баланс
-    updateGameBalance(balanceChange);
+    // Обновить баланс ИЗ БАЗЫ ДАННЫХ
+    if (newBalance !== undefined) {
+        updateAllBalances(newBalance);
+        // Обновить график истории
+        refreshHistoryAfterGame();
+    }
+}
+
+async function refreshHistoryAfterGame() {
+    try {
+        const { refreshHistory } = await import('./dashboard.js');
+        refreshHistory();
+    } catch (err) {
+        console.error('Failed to refresh history:', err);
+    }
 }
 
 // Инициализация игры в блэкджек
@@ -554,11 +574,14 @@ function renderRoulette(container) {
         return redNumbers.includes(num) ? 'red' : 'black';
     };
     
+    // Получаем текущий баланс из хедера
+    const currentBalance = document.getElementById('header-balance').textContent.replace(/\s/g, '');
+    
     container.innerHTML = `
         <div class="roulette-table">
             <div class="roulette-header">
                 <h2>ROULETTE</h2>
-                <div class="balance-display">Balance: $<span id="game-balance">1000</span></div>
+                <div class="balance-display">Balance: $<span id="game-balance">${currentBalance}</span></div>
             </div>
             
             <div class="roulette-game">
@@ -829,7 +852,8 @@ function showRouletteResult(result, winningNumber) {
         playSound('lose');
     }
     
-    // Обновляем баланс
+    // НЕ обновляем баланс локально, т.к. рулетка пока не подключена к бэкенду
+    // TODO: После подключения к БД, использовать updateAllBalances()
     updateGameBalance(netWin);
 }
 
@@ -942,6 +966,30 @@ function updateGameBalance(change) {
         if (headerBalance) {
             headerBalance.textContent = newBalance;
         }
+    }
+}
+
+// Обновляет ВСЕ отображения баланса (хедер, профиль, игра)
+function updateAllBalances(newBalance) {
+    // Форматируем с пробелами
+    const formatted = newBalance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    
+    // Хедер
+    const headerBalance = document.getElementById('header-balance');
+    if (headerBalance) {
+        headerBalance.textContent = formatted;
+    }
+    
+    // Профиль
+    const profileBalance = document.getElementById('profile-balance');
+    if (profileBalance) {
+        profileBalance.textContent = formatted;
+    }
+    
+    // Баланс внутри игры
+    const gameBalance = document.getElementById('game-balance');
+    if (gameBalance) {
+        gameBalance.textContent = newBalance;
     }
 }
 
