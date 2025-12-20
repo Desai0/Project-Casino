@@ -2,10 +2,79 @@
  const { app, BrowserWindow, ipcMain } = require('electron');
  const path = require('path');
  const koffi = require('koffi'); // Load Koffi for C++ DLL
- 
- // Import DB Layer
- const db = require('../DB/db/index'); 
- 
+
+
+ // часть вайбкода акима
+// ... другие импорты ...
+const adminService = require('./services/admin'); // Путь к вашему файлу с сервисом администратора
+
+ipcMain.handle('admin:getAllUsers', async (event, profileId) => {
+    if (!adminService.checkAdminAccess(profileId)) {
+        return new Error("You don't have permission to perform this action");
+    }
+    // получение всех пользователей
+});
+
+ipcMain.handle('admin:updateUserRole', async (event, { profileId, role }) => {
+    if (!adminService.checkAdminAccess(profileId)) {
+        return new Error("You don't have permission to perform this action");
+    }
+    // обновление роли пользователя
+});
+
+ipcMain.handle('admin:updateUserBalance', async (event, { profileId, balance }) => {
+    if (!adminService.checkAdminAccess(profileId)) {
+        return new Error("You don't have permission to perform this action");
+    }
+    // обновление баланса пользователя
+});
+
+ipcMain.handle('admin:resetUserHistory', async (event, profileId) => {
+    if (!adminService.checkAdminAccess(profileId)) {
+        return new Error("You don't have permission to perform this action");
+    }
+    // сброс истории игр пользователя
+});
+
+
+// ... другие импорты ...
+//const db = require('../DB/db'); // Путь к вашему файлу базы данных
+
+ipcMain.handle('api:getUserStatistics', async (event, { profileId, startDate, endDate }) => {
+    if (!profileId) return new Error("Profile ID is required");
+    // валидация дат и получение статистики пользователя за указанный период
+});
+
+ipcMain.handle('admin:getUserStatistics', async (event, { profileId, startDate, endDate }) => {
+    if (!profileId) return new Error("Profile ID is required");
+    // валидация дат и получение статистики любого пользователя за указанный период
+});
+
+ipcMain.handle('admin:getAllUsersStatistics', async (event, { startDate, endDate }) => {
+    if (!startDate || !endDate) return new Error("Start and End dates are required");
+    // валидация дат и получение статистики всех пользователей за указанный период
+});
+
+// ... другие импорты ...
+const db = require('../DB/db'); // Путь к вашему файлу базы данных
+
+ipcMain.handle('api:addBalance', async (event, { profileId, amount }) => {
+    if (!adminService.checkAdminAccess(profileId)) {
+        return new Error("You don't have permission to perform this action");
+    }
+    // валидация суммы и обновление баланса через db.players.updateBalance
+});
+
+ipcMain.handle('api:getBalanceHistory', async (event, profileId) => {
+    if (!profileId) return new Error("Profile ID is required");
+    // получение истории изменений баланса
+});
+
+
+// конец вайбкода акима
+
+
+
  // --- DLL Integration ---
  let spinSlotLib;
  try {
