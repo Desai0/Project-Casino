@@ -5,69 +5,71 @@
 
 
  // часть вайбкода акима
-// ... другие импорты ...
-const adminService = require('./services/admin'); // Путь к вашему файлу с сервисом администратора
-
 ipcMain.handle('admin:getAllUsers', async (event, profileId) => {
-    if (!adminService.checkAdminAccess(profileId)) {
-        return new Error("You don't have permission to perform this action");
+    if (!checkAdminAccess(profileId)) {
+        throw new Error("You don't have permission to perform this action");
     }
-    // получение всех пользователей
+    const users = await db.players.getUsers();
+    return users;
 });
 
 ipcMain.handle('admin:updateUserRole', async (event, { profileId, role }) => {
-    if (!adminService.checkAdminAccess(profileId)) {
-        return new Error("You don't have permission to perform this action");
+    if (!checkAdminAccess(profileId)) {
+        throw new Error("You don't have permission to perform this action");
     }
-    // обновление роли пользователя
+    await db.players.updateUserRole({ profileId, role });
+    return true;
 });
 
 ipcMain.handle('admin:updateUserBalance', async (event, { profileId, balance }) => {
-    if (!adminService.checkAdminAccess(profileId)) {
-        return new Error("You don't have permission to perform this action");
+    if (!checkAdminAccess(profileId)) {
+        throw new Error("You don't have permission to perform this action");
     }
-    // обновление баланса пользователя
+    await db.players.updateBalance({ profileId, balance });
+    return true;
 });
 
 ipcMain.handle('admin:resetUserHistory', async (event, profileId) => {
-    if (!adminService.checkAdminAccess(profileId)) {
-        return new Error("You don't have permission to perform this action");
+    if (!checkAdminAccess(profileId)) {
+        throw new Error("You don't have permission to perform this action");
     }
-    // сброс истории игр пользователя
+    await db.rounds.resetUserHistory({ profileId });
+    return true;
 });
 
 
-// ... другие импорты ...
-//const db = require('../DB/db'); // Путь к вашему файлу базы данных
-
-ipcMain.handle('api:getUserStatistics', async (event, { profileId, startDate, endDate }) => {
-    if (!profileId) return new Error("Profile ID is required");
-    // валидация дат и получение статистики пользователя за указанный период
-});
 
 ipcMain.handle('admin:getUserStatistics', async (event, { profileId, startDate, endDate }) => {
-    if (!profileId) return new Error("Profile ID is required");
-    // валидация дат и получение статистики любого пользователя за указанный период
+    if (!checkAdminAccess(profileId)) {
+        throw new Error("You don't have permission to perform this action");
+    }
+    const statistics = await db.statistics.getUserStatistics({ profileId, startDate, endDate });
+    return statistics;
 });
 
 ipcMain.handle('admin:getAllUsersStatistics', async (event, { startDate, endDate }) => {
-    if (!startDate || !endDate) return new Error("Start and End dates are required");
-    // валидация дат и получение статистики всех пользователей за указанный период
+    if (!checkAdminAccess(profileId)) {
+        throw new Error("You don't have permission to perform this action");
+    }
+    const statistics = await db.statistics.getAllUsersStatistics({ startDate, endDate });
+    return statistics;
 });
 
-// ... другие импорты ...
-const db = require('../DB/db'); // Путь к вашему файлу базы данных
 
+ 
 ipcMain.handle('api:addBalance', async (event, { profileId, amount }) => {
-    if (!adminService.checkAdminAccess(profileId)) {
-        return new Error("You don't have permission to perform this action");
+    if (!checkAdminAccess(profileId)) {
+        throw new Error("You don't have permission to perform this action");
     }
-    // валидация суммы и обновление баланса через db.players.updateBalance
+    if (!amount) throw new Error("Amount is required");
+    const result = await db.players.updateBalance({ profileId, balance: amount });
+    return result;
 });
 
 ipcMain.handle('api:getBalanceHistory', async (event, profileId) => {
-    if (!profileId) return new Error("Profile ID is required");
-    // получение истории изменений баланса
+    if (!profileId) throw new Error("Profile ID is required");
+    const history = await db.players.getBalanceHistory({ profileId });
+    return history;
 });
 
 
