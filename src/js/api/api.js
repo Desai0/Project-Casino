@@ -25,7 +25,38 @@ export const api = {
         return await window.electronAPI.updateAvatar({ profileId, avatarPath });
     },
 
+    async getUserWithPermissions(profileId) {
+        return await window.electronAPI.getUserWithPermissions(profileId);
+    },
+
     onBalanceUpdate(callback) {
         window.electronAPI.onUpdateBalance(callback);
+    },
+
+    // Admin API methods
+    admin: {
+        async getAllUsers() {
+            return await window.electronAPI.admin.getAllUsers();
+        },
+
+        async updateUserRole({ userId, roleId }) {
+            return await window.electronAPI.admin.updateUserRole({ userId, roleId });
+        },
+
+        async updateUserBalance({ userId, balance }) {
+            return await window.electronAPI.admin.updateUserBalance({ userId, balance });
+        },
+
+        async resetUserHistory({ userId }) {
+            return await window.electronAPI.admin.resetUserHistory({ userId });
+        },
+
+        async getUserStatistics({ profileId, startDate, endDate }) {
+            return await window.electronAPI.admin.getUserStatistics({ profileId, startDate, endDate });
+        },
+
+        async getAllUsersStatistics({ startDate, endDate }) {
+            return await window.electronAPI.admin.getAllUsersStatistics({ startDate, endDate });
+        }
     }
 };

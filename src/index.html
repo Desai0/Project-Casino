@@ -35,6 +35,7 @@
         <nav class="nav-tabs">
             <div class="nav-tab active" data-target="profile-screen">Profile</div>
             <div class="nav-tab" data-target="menu-screen">Games</div>
+            <div class="nav-tab" data-target="admin-screen" style="display: none;">Admin</div>
             <div class="nav-tab" id="logout-btn">Logout</div>
         </nav>
         
@@ -143,6 +144,58 @@
             </div>
         </div>
 
+        <!-- ADMIN PANEL SCREEN -->
+        <div id="admin-screen" class="screen-section">
+            <div class="admin-panel">
+                <div class="admin-header">
+                    <h2>Admin Panel</h2>
+                    <div class="admin-messages">
+                        <div id="admin-error" class="error-message" style="display: none;"></div>
+                        <div id="admin-success" class="success-message" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Users Management -->
+                <div class="admin-section">
+                    <h3>Users Management</h3>
+                    <div class="users-table-container">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Nickname</th>
+                                    <th>Role</th>
+                                    <th>Balance</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Statistics Section -->
+                <div class="admin-section">
+                    <h3>Statistics</h3>
+                    <div class="stats-controls">
+                        <div class="date-range">
+                            <label>From:</label>
+                            <input type="date" id="stats-start-date">
+                            <label>To:</label>
+                            <input type="date" id="stats-end-date">
+                            <button id="load-all-stats-btn" class="action-btn">Load All Stats</button>
+                        </div>
+                    </div>
+                    <div id="all-users-stats" class="all-stats-container">
+                        <!-- All users statistics will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- GAME CONTAINER (Overlay) -->
@@ -150,6 +203,88 @@
         <button id="close-game" style="position:absolute; top:20px; right:20px; z-index:5001;">EXIT</button>
         <div id="game-render-area" style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; color:white;">
             <!-- User B Game Area -->
+        </div>
+    </div>
+
+    <!-- USER EDIT MODAL -->
+    <div id="user-edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit User</h3>
+                <button id="close-edit-modal" class="close-btn">&times;</button>
+            </div>
+            <form id="user-edit-form" class="modal-body">
+                <input type="hidden" id="edit-user-id">
+                
+                <div class="form-group">
+                    <label for="edit-username">Username:</label>
+                    <input type="text" id="edit-username" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-nickname">Nickname:</label>
+                    <input type="text" id="edit-nickname" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-balance">Balance:</label>
+                    <input type="number" id="edit-balance" min="0" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-role">Role:</label>
+                    <select id="edit-role" required>
+                        <option value="1">User</option>
+                        <option value="2">Admin</option>
+                        <option value="3">Streamer</option>
+                    </select>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" id="cancel-edit" class="action-btn secondary">Cancel</button>
+                    <button type="submit" class="action-btn primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- STATISTICS MODAL -->
+    <div id="statistics-modal" class="modal hidden">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>User Statistics - <span id="stats-user-name"></span></h3>
+                <button id="close-stats-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-overview">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Games:</span>
+                            <span class="stat-value" id="stats-total-games">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Bets:</span>
+                            <span class="stat-value" id="stats-total-bets">$0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Wins:</span>
+                            <span class="stat-value" id="stats-total-wins">$0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Losses:</span>
+                            <span class="stat-value" id="stats-total-losses">$0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Net Result:</span>
+                            <span class="stat-value" id="stats-net-result">$0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-chart-container">
+                    <canvas id="statistics-chart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 

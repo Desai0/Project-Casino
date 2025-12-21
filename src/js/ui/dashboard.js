@@ -1,4 +1,5 @@
 import { api } from '../api/api.js';
+import { initAdminPanel } from './admin.js';
 
 let balanceChart = null; // Chart instance
 
@@ -26,7 +27,62 @@ export function showDashboard(user) {
     // Initialize profile editing
     initProfileEditing();
 
+    // Загружаем права пользователя и инициализируем админ панель
+    loadUserPermissions(user.id);
+
     loadHistory(user.id);
+}
+
+async function loadUserPermissions(userId) {
+    try {
+        const userWithPermissions = await api.getUserWithPermissions(userId);
+        console.log('User permissions loaded:', userWithPermissions);
+        
+        // Сохраняем права в глобальном объекте
+        if (window.currentUser) {
+            window.currentUser.permissions = {
+                can_edit_balance: userWithPermissions.can_edit_balance === 1,
+                can_view_debug_info: userWithPermissions.can_view_debug_info === 1,
+                streamer_mode_access: userWithPermissions.streamer_mode_access === 1,
+                can_reset_history: userWithPermissions.can_reset_history === 1
+            };
+        }
+        
+        // Инициализируем админ панель если есть права
+        initAdminPanel();
+        
+        // Показываем/скрываем UI элементы в зависимости от прав
+        updateUIBasedOnPermissions();
+        
+    } catch (error) {
+        console.error('Failed to load user permissions:', error);
+        // Если не удалось загрузить права, считаем что это обычный пользователь
+        if (window.currentUser) {
+            window.currentUser.permissions = {
+                can_edit_balance: false,
+                can_view_debug_info: false,
+                streamer_mode_access: false,
+                can_reset_history: false
+            };
+        }
+    }
+}
+
+function updateUIBasedOnPermissions() {
+    const permissions = window.currentUser?.permissions || {};
+    
+    // Показываем/скрываем вкладку Admin
+    const adminTab = document.querySelector('[data-target="admin-screen"]');
+    if (adminTab) {
+        if (permissions.can_edit_balance) {
+            adminTab.style.display = 'block';
+        } else {
+            adminTab.style.display = 'none';
+        }
+    }
+    
+    // Здесь можно добавить другие проверки прав для UI элементов
+    // Например, кнопка Streamer Mode, Deposit и т.д.
 }
 
 function updateAvatarDisplay(elementId, avatarPath, fallbackName) {
