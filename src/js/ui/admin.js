@@ -18,7 +18,11 @@ export function initAdminPanel() {
         adminTab.style.display = 'block';
     }
 
-    loadUsersList();
+    // Загружаем пользователей с небольшой задержкой, чтобы убедиться что все инициализировано
+    setTimeout(() => {
+        loadUsersList();
+    }, 100);
+    
     initUserEditHandlers();
     initStatisticsHandlers();
 }
@@ -26,13 +30,33 @@ export function initAdminPanel() {
 async function loadUsersList() {
     try {
         console.log('Loading users list...');
-        const users = await api.admin.getAllUsers();
+        console.log('Current user:', window.currentUser);
+        
+        // Проверяем, что пользователь залогинен
+        if (!window.currentUser?.id) {
+            console.error('User not logged in');
+            showError('User not logged in');
+            return;
+        }
+        
+        const users = await api.admin.getAllUsers({});
         console.log('Users loaded:', users);
+        
+        if (!users || !Array.isArray(users)) {
+            console.error('Invalid users data:', users);
+            showError('Invalid users data received');
+            return;
+        }
+        
         currentUsers = users;
         renderUsersTable(users);
+        
+        if (users.length === 0) {
+            console.warn('No users found in database');
+        }
     } catch (error) {
         console.error('Failed to load users:', error);
-        showError('Failed to load users list');
+        showError(`Failed to load users list: ${error.message || error}`);
     }
 }
 
@@ -43,13 +67,24 @@ function renderUsersTable(users) {
         return;
     }
 
+    if (!users || users.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">
+                    No users found
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
     tbody.innerHTML = users.map(user => `
         <tr>
             <td>${user.profile_id}</td>
-            <td>${user.username}</td>
-            <td>${user.nickname}</td>
+            <td>${user.username || 'N/A'}</td>
+            <td>${user.nickname || 'N/A'}</td>
             <td>${user.role_name || 'User'}</td>
-            <td>$${user.current_balance}</td>
+            <td>$${user.current_balance || 0}</td>
             <td class="actions-cell">
                 <button class="action-btn edit-btn" onclick="window.adminActions.editUser(${user.profile_id})">Edit</button>
                 <button class="action-btn stats-btn" onclick="window.adminActions.viewStatistics(${user.profile_id})">Stats</button>
@@ -161,13 +196,17 @@ async function updateUserRole(userId, roleId) {
 
 async function updateUserBalance(userId, newBalance) {
     try {
+        console.log('Updating balance for user:', userId, 'new balance:', newBalance);
         const result = await api.admin.updateUserBalance({ userId, balance: newBalance });
-        if (!result.success) {
-            throw new Error(result.error || 'Failed to update balance');
-        }
+        console.log('Update balance result:', result);
+        
+        // Обновляем список пользователей после изменения баланса
+        await loadUsersList();
+        showSuccess('Balance updated successfully');
         return result;
     } catch (error) {
         console.error('Update balance error:', error);
+        showError(`Failed to update balance: ${error.message || error}`);
         throw error;
     }
 }
@@ -178,36 +217,53 @@ async function resetUserHistory(userId) {
     }
 
     try {
+        console.log('Resetting history for user:', userId);
         const result = await api.admin.resetUserHistory({ userId });
-        if (!result.success) {
-            throw new Error(result.error || 'Failed to reset history');
-        }
+        console.log('Reset history result:', result);
         
         await loadUsersList(); // Перезагружаем список
         showSuccess('User history reset successfully');
     } catch (error) {
         console.error('Reset history error:', error);
-        showError('Failed to reset user history');
+        showError(`Failed to reset user history: ${error.message || error}`);
     }
 }
 
 async function viewUserStatistics(userId) {
-    const startDate = document.getElementById('stats-start-date').value || 
-                     new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const endDate = document.getElementById('stats-end-date').value || 
-                   new Date().toISOString().split('T')[0];
+    // Получаем даты из инпутов (type="date" возвращает YYYY-MM-DD)
+    const startDateInput = document.getElementById('stats-start-date');
+    const endDateInput = document.getElementById('stats-end-date');
+    
+    let startDate, endDate;
+    
+    if (startDateInput && startDateInput.value) {
+        startDate = startDateInput.value; // Уже в формате YYYY-MM-DD
+    } else {
+        // По умолчанию: 30 дней назад
+        const date = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        startDate = date.toISOString().split('T')[0];
+    }
+    
+    if (endDateInput && endDateInput.value) {
+        endDate = endDateInput.value; // Уже в формате YYYY-MM-DD
+    } else {
+        // По умолчанию: сегодня
+        endDate = new Date().toISOString().split('T')[0];
+    }
 
     try {
+        console.log('Loading statistics for user:', userId, 'from', startDate, 'to', endDate);
         const stats = await api.admin.getUserStatistics({
             profileId: userId,
             startDate,
             endDate
         });
+        console.log('Statistics loaded:', stats);
 
         showUserStatistics(userId, stats);
     } catch (error) {
         console.error('Failed to load user statistics:', error);
-        showError('Failed to load statistics');
+        showError(`Failed to load statistics: ${error.message || error}`);
     }
 }
 
@@ -215,36 +271,78 @@ function showUserStatistics(userId, stats) {
     const user = currentUsers.find(u => u.profile_id === userId);
     const userName = user ? user.username : `User ${userId}`;
 
+    // stats может быть объектом напрямую или обернутым в statistics
+    const statsData = stats.statistics || stats;
+    const gameStats = stats.gameStatistics || [];
+
     // Заполняем данные в модальном окне
-    document.getElementById('stats-user-name').textContent = userName;
-    document.getElementById('stats-total-games').textContent = stats.statistics?.total_games || 0;
-    document.getElementById('stats-total-bets').textContent = `$${stats.statistics?.total_bet_amount || 0}`;
-    document.getElementById('stats-total-wins').textContent = `$${stats.statistics?.total_wins || 0}`;
-    document.getElementById('stats-total-losses').textContent = `$${stats.statistics?.total_losses || 0}`;
-    document.getElementById('stats-net-result').textContent = `$${stats.statistics?.net_result || 0}`;
+    const statsUserName = document.getElementById('stats-user-name');
+    const statsTotalGames = document.getElementById('stats-total-games');
+    const statsTotalBets = document.getElementById('stats-total-bets');
+    const statsTotalWins = document.getElementById('stats-total-wins');
+    const statsTotalLosses = document.getElementById('stats-total-losses');
+    const statsNetResult = document.getElementById('stats-net-result');
+
+    if (statsUserName) statsUserName.textContent = userName;
+    if (statsTotalGames) statsTotalGames.textContent = statsData?.total_games || 0;
+    if (statsTotalBets) statsTotalBets.textContent = `$${statsData?.total_bet_amount || 0}`;
+    if (statsTotalWins) statsTotalWins.textContent = `$${statsData?.total_wins || 0}`;
+    if (statsTotalLosses) statsTotalLosses.textContent = `$${statsData?.total_losses || 0}`;
+    if (statsNetResult) {
+        const netResult = statsData?.net_result || 0;
+        statsNetResult.textContent = `$${netResult}`;
+        statsNetResult.className = netResult >= 0 ? 'win-text' : 'lose-text';
+    }
 
     // Отображаем график если есть данные
-    if (stats.gameStatistics && stats.gameStatistics.length > 0) {
-        renderStatisticsChart(stats.gameStatistics);
+    if (gameStats.length > 0) {
+        renderStatisticsChart(gameStats);
     }
 
     // Показываем модальное окно
-    document.getElementById('statistics-modal').classList.remove('hidden');
+    const statsModal = document.getElementById('statistics-modal');
+    if (statsModal) {
+        statsModal.classList.remove('hidden');
+    }
 }
 
 async function loadAllUsersStatistics() {
-    const startDate = document.getElementById('stats-start-date').value || 
-                     new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const endDate = document.getElementById('stats-end-date').value || 
-                   new Date().toISOString().split('T')[0];
+    // Получаем даты из инпутов (type="date" возвращает YYYY-MM-DD)
+    const startDateInput = document.getElementById('stats-start-date');
+    const endDateInput = document.getElementById('stats-end-date');
+    
+    let startDate, endDate;
+    
+    if (startDateInput && startDateInput.value) {
+        startDate = startDateInput.value; // Уже в формате YYYY-MM-DD
+    } else {
+        // По умолчанию: 30 дней назад
+        const date = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        startDate = date.toISOString().split('T')[0];
+    }
+    
+    if (endDateInput && endDateInput.value) {
+        endDate = endDateInput.value; // Уже в формате YYYY-MM-DD
+    } else {
+        // По умолчанию: сегодня
+        endDate = new Date().toISOString().split('T')[0];
+    }
 
     try {
         const allStats = await api.admin.getAllUsersStatistics({ startDate, endDate });
         
         // Отображаем общую статистику
         const container = document.getElementById('all-users-stats');
+        if (!container) {
+            console.error('all-users-stats container not found');
+            return;
+        }
+        
+        const startDateDisplay = startDateInput?.value || startDate;
+        const endDateDisplay = endDateInput?.value || endDate;
+        
         container.innerHTML = `
-            <h3>All Users Statistics (${startDate} - ${endDate})</h3>
+            <h3>All Users Statistics (${startDateDisplay} - ${endDateDisplay})</h3>
             <div class="stats-grid">
                 <div class="stat-item">
                     <span class="stat-label">Total Users:</span>
@@ -257,6 +355,18 @@ async function loadAllUsersStatistics() {
                 <div class="stat-item">
                     <span class="stat-label">Total Bets:</span>
                     <span class="stat-value">$${allStats.totalBets || 0}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Wins:</span>
+                    <span class="stat-value">$${allStats.totalWins || 0}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Losses:</span>
+                    <span class="stat-value">$${allStats.totalLosses || 0}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">House Profit:</span>
+                    <span class="stat-value">$${allStats.houseProfit || 0}</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">House Edge:</span>

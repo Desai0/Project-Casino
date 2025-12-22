@@ -17,29 +17,31 @@ function getUserStatistics({ profileId, startDate, endDate }) {
     db.get(
       `SELECT 
         COUNT(*) as total_games,
-        SUM(ABS(money_win_lose_ammount)) as total_bet_amount,
-        SUM(CASE WHEN money_win_lose_ammount > 0 THEN money_win_lose_ammount ELSE 0 END) as total_wins,
-        SUM(CASE WHEN money_win_lose_ammount < 0 THEN ABS(money_win_lose_ammount) ELSE 0 END) as total_losses,
-        SUM(money_win_lose_ammount) as net_result,
-        AVG(ABS(money_win_lose_ammount)) as avg_bet,
-        MAX(money_win_lose_ammount) as max_win,
-        MIN(money_win_lose_ammount) as max_loss
+        COALESCE(SUM(ABS(money_win_lose_ammount)), 0) as total_bet_amount,
+        COALESCE(SUM(CASE WHEN money_win_lose_ammount > 0 THEN money_win_lose_ammount ELSE 0 END), 0) as total_wins,
+        COALESCE(SUM(CASE WHEN money_win_lose_ammount < 0 THEN ABS(money_win_lose_ammount) ELSE 0 END), 0) as total_losses,
+        COALESCE(SUM(money_win_lose_ammount), 0) as net_result,
+        COALESCE(AVG(ABS(money_win_lose_ammount)), 0) as avg_bet,
+        COALESCE(MAX(money_win_lose_ammount), 0) as max_win,
+        COALESCE(MIN(money_win_lose_ammount), 0) as max_loss
        FROM game_rounds
        WHERE profile_id = ? 
-         AND date(timestamp) >= date(?) 
-         AND date(timestamp) <= date(?)`,
+         AND substr(timestamp, 1, 10) >= replace(?, '-', '.')
+         AND substr(timestamp, 1, 10) <= replace(?, '-', '.')`,
       [profileId, startDate, endDate],
       (err, row) => {
         if (err) return reject(err);
-        resolve(row || {
-          total_games: 0,
-          total_bet_amount: 0,
-          total_wins: 0,
-          total_losses: 0,
-          net_result: 0,
-          avg_bet: 0,
-          max_win: 0,
-          max_loss: 0
+        // Обрабатываем NULL значения
+        const result = row || {};
+        resolve({
+          total_games: result.total_games || 0,
+          total_bet_amount: result.total_bet_amount || 0,
+          total_wins: result.total_wins || 0,
+          total_losses: result.total_losses || 0,
+          net_result: result.net_result || 0,
+          avg_bet: result.avg_bet || 0,
+          max_win: result.max_win || 0,
+          max_loss: result.max_loss || 0
         });
       }
     );
@@ -66,25 +68,36 @@ function getUserGameStatistics({ profileId, startDate, endDate }) {
         g.name as game_name,
         c.name as category_name,
         COUNT(r.round_id) as games_count,
-        SUM(ABS(r.money_win_lose_ammount)) as total_bet_amount,
-        SUM(CASE WHEN r.money_win_lose_ammount > 0 THEN r.money_win_lose_ammount ELSE 0 END) as total_wins,
-        SUM(CASE WHEN r.money_win_lose_ammount < 0 THEN ABS(r.money_win_lose_ammount) ELSE 0 END) as total_losses,
-        SUM(r.money_win_lose_ammount) as net_result,
-        AVG(ABS(r.money_win_lose_ammount)) as avg_bet,
-        MAX(r.money_win_lose_ammount) as max_win,
-        MIN(r.money_win_lose_ammount) as max_loss
+        COALESCE(SUM(ABS(r.money_win_lose_ammount)), 0) as total_bet_amount,
+        COALESCE(SUM(CASE WHEN r.money_win_lose_ammount > 0 THEN r.money_win_lose_ammount ELSE 0 END), 0) as total_wins,
+        COALESCE(SUM(CASE WHEN r.money_win_lose_ammount < 0 THEN ABS(r.money_win_lose_ammount) ELSE 0 END), 0) as total_losses,
+        COALESCE(SUM(r.money_win_lose_ammount), 0) as net_result,
+        COALESCE(AVG(ABS(r.money_win_lose_ammount)), 0) as avg_bet,
+        COALESCE(MAX(r.money_win_lose_ammount), 0) as max_win,
+        COALESCE(MIN(r.money_win_lose_ammount), 0) as max_loss
        FROM games g
        JOIN game_rounds r ON g.game_id = r.game_id
        JOIN game_categories c ON g.category_id = c.category_id
        WHERE r.profile_id = ? 
-         AND date(r.timestamp) >= date(?) 
-         AND date(r.timestamp) <= date(?)
+         AND substr(r.timestamp, 1, 10) >= replace(?, '-', '.')
+         AND substr(r.timestamp, 1, 10) <= replace(?, '-', '.')
        GROUP BY g.game_id, g.name, c.name
        ORDER BY games_count DESC`,
       [profileId, startDate, endDate],
       (err, rows) => {
         if (err) return reject(err);
-        resolve(rows || []);
+        // Обрабатываем NULL значения в каждой строке
+        const processedRows = (rows || []).map(row => ({
+          ...row,
+          total_bet_amount: row.total_bet_amount || 0,
+          total_wins: row.total_wins || 0,
+          total_losses: row.total_losses || 0,
+          net_result: row.net_result || 0,
+          avg_bet: row.avg_bet || 0,
+          max_win: row.max_win || 0,
+          max_loss: row.max_loss || 0
+        }));
+        resolve(processedRows);
       }
     );
   });
@@ -107,41 +120,35 @@ function getAllUsersStatistics({ startDate, endDate }) {
       `SELECT 
         COUNT(DISTINCT r.profile_id) as total_users,
         COUNT(r.round_id) as total_games,
-        SUM(ABS(r.money_win_lose_ammount)) as total_bets,
-        SUM(CASE WHEN r.money_win_lose_ammount > 0 THEN r.money_win_lose_ammount ELSE 0 END) as total_wins,
-        SUM(CASE WHEN r.money_win_lose_ammount < 0 THEN ABS(r.money_win_lose_ammount) ELSE 0 END) as total_losses,
-        SUM(r.money_win_lose_ammount) as house_profit,
-        AVG(ABS(r.money_win_lose_ammount)) as avg_bet
+        COALESCE(SUM(ABS(r.money_win_lose_ammount)), 0) as total_bets,
+        COALESCE(SUM(CASE WHEN r.money_win_lose_ammount > 0 THEN r.money_win_lose_ammount ELSE 0 END), 0) as total_wins,
+        COALESCE(SUM(CASE WHEN r.money_win_lose_ammount < 0 THEN ABS(r.money_win_lose_ammount) ELSE 0 END), 0) as total_losses,
+        COALESCE(SUM(r.money_win_lose_ammount), 0) as house_profit,
+        COALESCE(AVG(ABS(r.money_win_lose_ammount)), 0) as avg_bet
        FROM game_rounds r
-       WHERE date(r.timestamp) >= date(?) 
-         AND date(r.timestamp) <= date(?)`,
+       WHERE substr(r.timestamp, 1, 10) >= replace(?, '-', '.')
+         AND substr(r.timestamp, 1, 10) <= replace(?, '-', '.')`,
       [startDate, endDate],
       (err, row) => {
         if (err) return reject(err);
         
-        const stats = row || {
-          total_users: 0,
-          total_games: 0,
-          total_bets: 0,
-          total_wins: 0,
-          total_losses: 0,
-          house_profit: 0,
-          avg_bet: 0
-        };
+        const stats = row || {};
+        const totalBets = stats.total_bets || 0;
+        const houseProfit = stats.house_profit || 0;
 
         // Вычисляем house edge (преимущество казино)
-        const houseEdge = stats.total_bets > 0 
-          ? ((stats.house_profit / stats.total_bets) * 100).toFixed(2)
+        const houseEdge = totalBets > 0 
+          ? ((houseProfit / totalBets) * 100).toFixed(2)
           : 0;
 
         resolve({
-          totalUsers: stats.total_users,
-          totalGames: stats.total_games,
-          totalBets: stats.total_bets,
-          totalWins: stats.total_wins,
-          totalLosses: stats.total_losses,
-          houseProfit: stats.house_profit,
-          avgBet: stats.avg_bet,
+          totalUsers: stats.total_users || 0,
+          totalGames: stats.total_games || 0,
+          totalBets: totalBets,
+          totalWins: stats.total_wins || 0,
+          totalLosses: stats.total_losses || 0,
+          houseProfit: houseProfit,
+          avgBet: stats.avg_bet || 0,
           houseEdge: parseFloat(houseEdge)
         });
       }
@@ -174,8 +181,8 @@ function getTopWinners({ startDate, endDate, limit = 10 }) {
         MAX(r.money_win_lose_ammount) as biggest_win
        FROM players p
        JOIN game_rounds r ON p.profile_id = r.profile_id
-       WHERE date(r.timestamp) >= date(?) 
-         AND date(r.timestamp) <= date(?)
+       WHERE substr(r.timestamp, 1, 10) >= replace(?, '-', '.')
+         AND substr(r.timestamp, 1, 10) <= replace(?, '-', '.')
        GROUP BY p.profile_id, p.username, p.nickname
        ORDER BY net_winnings DESC
        LIMIT ?`,
@@ -214,8 +221,8 @@ function getGamesStatistics({ startDate, endDate }) {
         AVG(ABS(r.money_win_lose_ammount)) as avg_bet
        FROM games g
        LEFT JOIN game_rounds r ON g.game_id = r.game_id 
-         AND date(r.timestamp) >= date(?) 
-         AND date(r.timestamp) <= date(?)
+         AND substr(r.timestamp, 1, 10) >= replace(?, '-', '.')
+         AND substr(r.timestamp, 1, 10) <= replace(?, '-', '.')
        JOIN game_categories c ON g.category_id = c.category_id
        GROUP BY g.game_id, g.name, c.name
        ORDER BY total_rounds DESC`,

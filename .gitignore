@@ -46,3 +46,6 @@ coverage/
 
 # Package lock (можно включить если нужно)
 # package-lock.json
+
+# DLL files (exclude from ignore - we need slots.dll)
+!slots.dll

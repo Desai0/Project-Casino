@@ -392,6 +392,9 @@ function initBlackjackGame() {
 function startBlackjackGame(gameState, gameActions, betInput) {
     const betAmount = parseInt(betInput.value) || 10;
     
+    // Сохраняем betAmount в gameState для использования в endBlackjackGame
+    gameState.betAmount = betAmount;
+    
     // Сброс состояния
     gameState.playerCards = [];
     gameState.dealerCards = [];
@@ -487,7 +490,7 @@ function playerHit(gameState) {
     updateBlackjackDisplay(gameState);
     
     if (gameState.playerScore > 21) {
-        endBlackjackGame(gameState, 'bust');
+        endBlackjackGame(gameState, 'bust', gameState.betAmount);
     }
     
     playSound('card');
@@ -517,42 +520,73 @@ function playerStand(gameState, gameActions) {
         result = 'tie';
     }
     
-    endBlackjackGame(gameState, result);
+    endBlackjackGame(gameState, result, gameState.betAmount);
 }
 
-function endBlackjackGame(gameState, result) {
+async function endBlackjackGame(gameState, result, betAmount) {
     const resultDiv = document.getElementById('blackjack-result');
     const gameActions = document.getElementById('game-actions');
     
     let message = '';
     let isWin = false;
+    let winAmount = 0;
+    
+    // Получаем profileId из текущего пользователя
+    const profileId = window.currentUser?.id || 1;
     
     switch (result) {
         case 'bust':
             message = 'Bust! You lose!';
             playSound('lose');
+            winAmount = 0;
             break;
         case 'dealer_bust':
             message = 'Dealer bust! You win!';
             isWin = true;
             playSound('win');
+            winAmount = betAmount * 2; // Выигрыш = ставка * 2 (ставка + выигрыш)
             break;
         case 'player_win':
             message = 'You win!';
             isWin = true;
             playSound('win');
+            winAmount = betAmount * 2;
             break;
         case 'dealer_win':
             message = 'Dealer wins!';
             playSound('lose');
+            winAmount = 0;
             break;
         case 'tie':
             message = 'Push (Tie)!';
             playSound('tie');
+            winAmount = betAmount; // Возврат ставки
             break;
     }
     
     resultDiv.innerHTML = `<div class="${isWin ? 'win-message' : 'lose-message'}">${message}</div>`;
+    
+    // Записываем результат в БД
+    try {
+        const gameResult = await api.playBlackjack({
+            action: 'end',
+            betAmount: betAmount,
+            gameState: {
+                result: result,
+                winAmount: winAmount
+            },
+            profileId: profileId
+        });
+        
+        if (gameResult.success && gameResult.newBalance !== undefined) {
+            // Обновляем баланс во всех местах
+            updateAllBalances(gameResult.newBalance);
+            // Обновляем график истории
+            refreshHistoryAfterGame();
+        }
+    } catch (error) {
+        console.error('Failed to record blackjack result:', error);
+    }
     
     gameActions.style.display = 'none';
     document.getElementById('deal-btn').style.display = 'inline-block';
@@ -775,14 +809,50 @@ function initRouletteGame(rouletteNumbers, getNumberColor) {
 }
 
 async function calculateRouletteWin(winningNumber, bets, getNumberColor) {
+    // Валидация входных данных
+    if (!bets || !Array.isArray(bets) || bets.length === 0) {
+        console.error('Roulette: Invalid bets array:', bets);
+        return {
+            winningNumber,
+            totalWin: 0,
+            totalBet: 0,
+            netWin: 0,
+            bets: []
+        };
+    }
+    
     let totalWin = 0;
-    let totalBet = bets.reduce((sum, bet) => sum + bet.amount, 0);
+    // Суммируем ставки с валидацией
+    let totalBet = 0;
+    bets.forEach(bet => {
+        if (bet && bet.amount && !isNaN(bet.amount) && bet.amount > 0) {
+            totalBet += Number(bet.amount);
+        }
+    });
+    
+    // Валидация
+    if (!totalBet || totalBet <= 0 || isNaN(totalBet)) {
+        console.error('Roulette: Invalid totalBet:', totalBet, 'from bets:', bets);
+        return {
+            winningNumber,
+            totalWin: 0,
+            totalBet: 0,
+            netWin: 0,
+            bets: []
+        };
+    }
     
     const winningColor = getNumberColor(winningNumber);
     const isEven = winningNumber !== 0 && winningNumber % 2 === 0;
     const isLow = winningNumber >= 1 && winningNumber <= 18;
     
     bets.forEach(bet => {
+        // Валидация ставки
+        if (!bet || !bet.amount || bet.amount <= 0 || isNaN(bet.amount)) {
+            console.warn('Roulette: Invalid bet:', bet);
+            return;
+        }
+        
         let isWinningBet = false;
         let payout = 0;
         
@@ -790,25 +860,27 @@ async function calculateRouletteWin(winningNumber, bets, getNumberColor) {
             case 'straight':
                 if (parseInt(bet.value) === winningNumber) {
                     isWinningBet = true;
-                    payout = bet.amount * 35; // 35:1
+                    // 35:1 означает: выигрыш = ставка * 35 (чистая прибыль, ставка возвращается отдельно)
+                    payout = Number(bet.amount) * 35;
                 }
                 break;
             case 'color':
                 if (bet.value === winningColor) {
                     isWinningBet = true;
-                    payout = bet.amount * 1; // 1:1
+                    // 1:1 означает: выигрыш = ставка * 1 (чистая прибыль, ставка возвращается отдельно)
+                    payout = Number(bet.amount) * 1;
                 }
                 break;
             case 'parity':
                 if ((bet.value === 'even' && isEven) || (bet.value === 'odd' && !isEven && winningNumber !== 0)) {
                     isWinningBet = true;
-                    payout = bet.amount * 1; // 1:1
+                    payout = Number(bet.amount) * 1;
                 }
                 break;
             case 'range':
                 if ((bet.value === '1-18' && isLow) || (bet.value === '19-36' && !isLow && winningNumber !== 0)) {
                     isWinningBet = true;
-                    payout = bet.amount * 1; // 1:1
+                    payout = Number(bet.amount) * 1;
                 }
                 break;
         }
@@ -818,11 +890,93 @@ async function calculateRouletteWin(winningNumber, bets, getNumberColor) {
         }
     });
     
+    // totalWin - это чистая прибыль (payout, без возврата ставки)
+    // В рулетке: если выиграли, получаем payout (чистая прибыль)
+    // Ставка списывается при записи в БД через moneyChange = totalWin - totalBet
+    // Если выиграли: moneyChange = payout - ставка (положительное число)
+    // Если проиграли: moneyChange = 0 - ставка (отрицательное число)
     const netWin = totalWin - totalBet;
     
-    // Записываем в БД (имитация)
+    console.log('Roulette calculation:', {
+        totalBet,
+        totalWin,
+        netWin,
+        winningNumber,
+        betsCount: bets.length
+    });
+    
+    // Записываем в БД
     try {
-        await api.playRoulette('end', totalBet, { winAmount: totalWin, result: winningNumber });
+        const profileId = window.currentUser?.id || 1;
+        
+        if (!profileId) {
+            console.error('Roulette: No profileId found');
+            return {
+                winningNumber,
+                totalWin: 0,
+                totalBet: totalBet,
+                netWin: -totalBet,
+                bets
+            };
+        }
+        
+        // Валидация перед отправкой
+        if (!totalBet || totalBet <= 0 || isNaN(totalBet)) {
+            console.error('Roulette: Invalid totalBet before sending:', totalBet);
+            return {
+                winningNumber,
+                totalWin: 0,
+                totalBet: 0,
+                netWin: 0,
+                bets
+            };
+        }
+        
+        if (isNaN(totalWin)) {
+            console.error('Roulette: Invalid totalWin before sending:', totalWin);
+            totalWin = 0;
+        }
+        
+        console.log('Roulette: Sending to backend:', {
+            totalBet: Number(totalBet),
+            totalWin: Number(totalWin),
+            netWin: Number(netWin),
+            winningNumber,
+            profileId
+        });
+        
+        const gameResult = await api.playRoulette({
+            action: 'end',
+            betAmount: Number(totalBet),
+            gameState: {
+                totalBet: Number(totalBet),
+                winAmount: Number(totalWin), // Чистая прибыль (payout, без возврата ставки)
+                winningNumber: winningNumber
+            },
+            profileId: profileId
+        });
+        
+        console.log('Roulette: Backend response:', gameResult);
+        
+        if (!gameResult || !gameResult.success) {
+            console.error('Roulette: Backend returned error:', gameResult?.error);
+            return {
+                winningNumber,
+                totalWin: 0,
+                totalBet: totalBet,
+                netWin: -totalBet,
+                bets
+            };
+        }
+        
+        if (gameResult.newBalance !== undefined && gameResult.newBalance !== null) {
+            // Обновляем баланс во всех местах
+            updateAllBalances(gameResult.newBalance);
+            // Обновляем график истории
+            refreshHistoryAfterGame();
+        } else {
+            console.warn('Roulette: Backend did not return newBalance, got:', gameResult);
+        }
     } catch (error) {
         console.error('Failed to record roulette result:', error);
     }
@@ -852,9 +1006,8 @@ function showRouletteResult(result, winningNumber) {
         playSound('lose');
     }
     
-    // НЕ обновляем баланс локально, т.к. рулетка пока не подключена к бэкенду
-    // TODO: После подключения к БД, использовать updateAllBalances()
-    updateGameBalance(netWin);
+    // Баланс уже обновлен в calculateRouletteWin через API и updateAllBalances
+    // НЕ вызываем updateGameBalance здесь, чтобы не дублировать обновление
 }
 
 // Звуковые эффекты
@@ -989,7 +1142,10 @@ function updateAllBalances(newBalance) {
     // Баланс внутри игры
     const gameBalance = document.getElementById('game-balance');
     if (gameBalance) {
-        gameBalance.textContent = newBalance;
+        gameBalance.textContent = formatted;
     }
 }
+
+// Делаем функцию глобальной для использования в других модулях
+window.updateAllBalances = updateAllBalances;
 

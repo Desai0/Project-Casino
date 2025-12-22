@@ -1,5 +1,7 @@
 import { api } from '../api/api.js';
 import { initAdminPanel } from './admin.js';
+import { showStreamerButton } from './streamer.js';
+import { initPaymentUI } from './payments.js';
 
 let balanceChart = null; // Chart instance
 
@@ -26,6 +28,9 @@ export function showDashboard(user) {
 
     // Initialize profile editing
     initProfileEditing();
+    
+    // Initialize payment UI (adds Deposit button)
+    initPaymentUI();
 
     // Загружаем права пользователя и инициализируем админ панель
     loadUserPermissions(user.id);
@@ -70,6 +75,11 @@ async function loadUserPermissions(userId) {
 
 function updateUIBasedOnPermissions() {
     const permissions = window.currentUser?.permissions || {};
+    
+    // Показываем/скрываем кнопку Streamer Mode
+    if (typeof showStreamerButton === 'function') {
+        showStreamerButton();
+    }
     
     // Показываем/скрываем вкладку Admin
     const adminTab = document.querySelector('[data-target="admin-screen"]');

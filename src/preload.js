@@ -2,7 +2,9 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   // Game Methods
-  spinSlots: (bet) => ipcRenderer.invoke('game:spin', bet),
+  spinSlots: (bet, profileId) => ipcRenderer.invoke('game:spin', bet, profileId),
+  playBlackjack: (data) => ipcRenderer.invoke('game:blackjack', data),
+  playRoulette: (data) => ipcRenderer.invoke('game:roulette', data),
   
   // User/Auth Methods
   login: (credentials) => ipcRenderer.invoke('api:login', credentials),
@@ -12,9 +14,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateAvatar: (data) => ipcRenderer.invoke('api:updateAvatar', data),
   getUserWithPermissions: (profileId) => ipcRenderer.invoke('api:getUserWithPermissions', profileId),
   
+  // Payment Methods
+  createPaymentIntent: (data) => ipcRenderer.invoke('api:createPaymentIntent', data),
+  confirmPayment: (data) => ipcRenderer.invoke('api:confirmPayment', data),
+  getPaymentHistory: (profileId) => ipcRenderer.invoke('api:getPaymentHistory', profileId),
+  
+  // User Statistics (for regular users)
+  getUserStatistics: (data) => ipcRenderer.invoke('api:getUserStatistics', data),
+  getBalanceHistory: (data) => ipcRenderer.invoke('api:getBalanceHistory', data),
+  
   // Admin Methods
   admin: {
-    getAllUsers: () => ipcRenderer.invoke('admin:getAllUsers'),
+    getAllUsers: (data) => ipcRenderer.invoke('admin:getAllUsers', data),
     updateUserRole: (data) => ipcRenderer.invoke('admin:updateUserRole', data),
     updateUserBalance: (data) => ipcRenderer.invoke('admin:updateUserBalance', data),
     resetUserHistory: (data) => ipcRenderer.invoke('admin:resetUserHistory', data),
