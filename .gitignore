@@ -1,0 +1,9 @@
+node_modules/
+casino.db
+casino.db-journal
+dist/
+*.log
+.DS_Store
+.vscode/
+.idea/
+

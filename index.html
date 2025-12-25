@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Casino</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Экран авторизации -->
+        <div id="auth-screen" class="screen active">
+            <div class="auth-container">
+                <div class="casino-logo">
+                    <h1>🎰 PREMIUM CASINO</h1>
+                    <p>Лучшее казино в мире</p>
+                </div>
+                <div class="auth-form">
+                    <div class="auth-tabs">
+                        <button class="tab-btn active" data-tab="login">Вход</button>
+                        <button class="tab-btn" data-tab="register">Регистрация</button>
+                    </div>
+                    <div id="login-form" class="form-content active">
+                        <input type="text" id="login-nickname" placeholder="Никнейм" class="input-field" value="admin">
+                        <input type="password" id="login-password" placeholder="Пароль" class="input-field" value="admin123">
+                        <div class="quick-login-hint">
+                            <small>Быстрый вход: admin / admin123</small>
+                        </div>
+                        <button id="login-btn" class="btn-primary">Войти</button>
+                        <div id="auth-error" class="error-message"></div>
+                    </div>
+                    <div id="register-form" class="form-content">
+                        <div class="input-group">
+                            <label for="register-nickname">Никнейм</label>
+                            <input type="text" id="register-nickname" placeholder="Введите никнейм (3-50 символов)" class="input-field" minlength="3" maxlength="50">
+                            <div class="input-hint">Минимум 3 символа</div>
+                        </div>
+                        <div class="input-group">
+                            <label for="register-password">Пароль</label>
+                            <input type="password" id="register-password" placeholder="Введите пароль (минимум 6 символов)" class="input-field" minlength="6">
+                            <div class="input-hint">Минимум 6 символов</div>
+                            <div class="password-strength" id="password-strength"></div>
+                        </div>
+                        <button id="register-btn" class="btn-primary">
+                            <span class="btn-text">Зарегистрироваться</span>
+                            <span class="btn-loader" style="display: none;">⏳</span>
+                        </button>
+                        <div id="register-error" class="error-message"></div>
+                        <div class="register-success" id="register-success" style="display: none;">
+                            ✅ Регистрация успешна! Перенаправление...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Главное меню (Лобби) -->
+        <div id="lobby-screen" class="screen">
+            <div class="window-controls">
+                <button class="window-btn minimize" id="minimize-btn">−</button>
+                <button class="window-btn maximize" id="maximize-btn">□</button>
+                <button class="window-btn close" id="close-btn">×</button>
+            </div>
+            
+            <div class="top-bar">
+                <div class="balance-display">
+                    <span class="balance-label">Баланс:</span>
+                    <span id="user-balance" class="balance-amount">0 ₽</span>
+                </div>
+                <div class="user-info">
+                    <span id="user-nickname"></span>
+                    <button id="profile-btn" class="btn-icon">👤</button>
+                    <button id="settings-btn" class="btn-icon">⚙️</button>
+                </div>
+            </div>
+
+            <div class="lobby-content">
+                <h1 class="lobby-title">Выберите игру</h1>
+                <div class="games-grid">
+                    <div class="game-card" data-game="slots">
+                        <div class="game-icon">🎰</div>
+                        <h3>Слоты</h3>
+                        <p>Крути барабаны и выигрывай!</p>
+                    </div>
+                    <div class="game-card" data-game="blackjack">
+                        <div class="game-icon">🃏</div>
+                        <h3>Блэкджек</h3>
+                        <p>21 очко - цель игры</p>
+                    </div>
+                    <div class="game-card" data-game="roulette">
+                        <div class="game-icon">🎲</div>
+                        <h3>Рулетка</h3>
+                        <p>Ставь на число и выигрывай</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран слотов -->
+        <div id="slots-screen" class="screen game-screen">
+            <div class="game-header">
+                <button id="back-to-lobby" class="btn-back">← Назад</button>
+                <h2>🎰 Слоты</h2>
+                <div class="game-balance">Баланс: <span id="game-balance-slots">0</span> ₽</div>
+            </div>
+            <div class="slots-container">
+                <div class="slots-reels" id="slots-reels">
+                    <div class="reel" id="reel-0"></div>
+                    <div class="reel" id="reel-1"></div>
+                    <div class="reel" id="reel-2"></div>
+                </div>
+                <div class="slots-controls">
+                    <div class="bet-control">
+                        <label>Ставка:</label>
+                        <input type="range" id="bet-slider" min="100" max="10000" value="1000" step="100">
+                        <span id="bet-amount">1000</span> ₽
+                    </div>
+                    <button id="spin-btn" class="btn-spin">КРУТИТЬ</button>
+                    <div id="win-display" class="win-display"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран блэкджека -->
+        <div id="blackjack-screen" class="screen game-screen">
+            <div class="game-header">
+                <button id="back-to-lobby-bj" class="btn-back">← Назад</button>
+                <h2>🃏 Блэкджек</h2>
+                <div class="game-stats">
+                    <div class="game-balance">Баланс: <span id="game-balance-bj">0</span> ₽</div>
+                    <div class="win-loss-stats">
+                        <span class="win-stat">✅ Побед: <span id="bj-wins">0</span></span>
+                        <span class="loss-stat">❌ Поражений: <span id="bj-losses">0</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="blackjack-container">
+                <div class="dealer-area">
+                    <h3>Дилер</h3>
+                    <div class="cards" id="dealer-cards"></div>
+                    <div class="score" id="dealer-score">Очки: 0</div>
+                </div>
+                <div class="player-area">
+                    <h3>Игрок</h3>
+                    <div class="cards" id="player-cards"></div>
+                    <div class="score" id="player-score">Очки: 0</div>
+                </div>
+                <div class="blackjack-controls">
+                    <div class="bet-control">
+                        <label>Ставка:</label>
+                        <input type="range" id="bet-slider-bj" min="200" max="30000" value="2000" step="100">
+                        <span id="bet-amount-bj">2000</span> ₽
+                    </div>
+                    <div class="game-buttons">
+                        <button id="deal-btn" class="btn-game">Раздать</button>
+                        <button id="hit-btn" class="btn-game" disabled>Взять</button>
+                        <button id="stand-btn" class="btn-game" disabled>Хватит</button>
+                    </div>
+                    <div id="bj-result" class="result-display"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран рулетки -->
+        <div id="roulette-screen" class="screen game-screen">
+            <div class="game-header">
+                <button id="back-to-lobby-roulette" class="btn-back">← Назад</button>
+                <h2>🎲 Рулетка</h2>
+                <div class="game-stats">
+                    <div class="game-balance">Баланс: <span id="game-balance-roulette">0</span> ₽</div>
+                    <div class="win-loss-stats">
+                        <span class="win-stat">✅ Побед: <span id="roulette-wins">0</span></span>
+                        <span class="loss-stat">❌ Поражений: <span id="roulette-losses">0</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="roulette-container">
+                <div class="roulette-wheel-wrapper">
+                    <div class="roulette-wheel" id="roulette-wheel">
+                        <div class="wheel-inner" id="wheel-inner">
+                            <!-- Номера будут добавлены через JavaScript -->
+                        </div>
+                    </div>
+                    <div class="roulette-pointer"></div>
+                    <div class="ball" id="roulette-ball"></div>
+                </div>
+                <div class="roulette-betting">
+                    <div class="bet-control">
+                        <label>Ставка:</label>
+                        <input type="range" id="bet-slider-roulette" min="100" max="50000" value="1000" step="100">
+                        <span id="bet-amount-roulette">1000</span> ₽
+                    </div>
+                    <div class="bet-options">
+                        <button class="bet-option" data-bet="red">Красное (x2)</button>
+                        <button class="bet-option" data-bet="black">Черное (x2)</button>
+                        <button class="bet-option" data-bet="green">Зеленое (x36)</button>
+                        <button class="bet-option" data-bet="even">Четное (x2)</button>
+                        <button class="bet-option" data-bet="odd">Нечетное (x2)</button>
+                    </div>
+                    <button id="spin-roulette-btn" class="btn-spin">КРУТИТЬ</button>
+                    <div id="roulette-result" class="result-display"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран профиля -->
+        <div id="profile-screen" class="screen">
+            <div class="profile-header">
+                <button id="back-to-lobby-profile" class="btn-back">← Назад</button>
+                <h2>Профиль</h2>
+            </div>
+            <div class="profile-content">
+                <div class="profile-info">
+                    <div class="profile-avatar">👤</div>
+                    <h3 id="profile-nickname"></h3>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Текущий баланс:</span>
+                            <span class="stat-value" id="profile-balance">0 ₽</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Всего игр:</span>
+                            <span class="stat-value" id="profile-total-games">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Общий результат:</span>
+                            <span class="stat-value" id="profile-total-result">0 ₽</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-charts">
+                    <div class="profile-chart">
+                        <h3>График баланса</h3>
+                        <canvas id="balance-chart"></canvas>
+                    </div>
+                    <div class="profile-chart">
+                        <h3>Траты и пополнения</h3>
+                        <canvas id="transaction-chart"></canvas>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button id="deposit-btn" class="btn-action">💰 Пополнить</button>
+                    <button id="withdraw-btn" class="btn-action">💸 Вывести</button>
+                    <button id="streamer-mode-btn" class="btn-action streamer-btn hidden">🔴 Streamer Mode</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран настроек -->
+        <div id="settings-screen" class="screen">
+            <div class="settings-header">
+                <button id="back-to-lobby-settings" class="btn-back">← Назад</button>
+                <h2>⚙️ Настройки</h2>
+            </div>
+            <div class="settings-content">
+                <div class="settings-section">
+                    <h3>👤 Настройки аккаунта</h3>
+                    <div class="settings-group">
+                        <label>Никнейм:</label>
+                        <div class="input-with-button">
+                            <input type="text" id="settings-nickname" class="input-field" readonly>
+                            <button id="change-nickname-btn" class="btn-small">Изменить</button>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <label>Email:</label>
+                        <div class="input-with-button">
+                            <input type="email" id="settings-email" class="input-field" placeholder="email@example.com">
+                            <button id="save-email-btn" class="btn-small">Сохранить</button>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <label>Телефон:</label>
+                        <div class="input-with-button">
+                            <input type="tel" id="settings-phone" class="input-field" placeholder="+7 (999) 123-45-67">
+                            <button id="save-phone-btn" class="btn-small">Сохранить</button>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <label>Дата рождения:</label>
+                        <input type="date" id="settings-birthday" class="input-field">
+                    </div>
+                    <div class="settings-group">
+                        <label>Сменить пароль:</label>
+                        <button id="change-password-btn" class="btn-secondary">Изменить пароль</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>💰 Валюта и платежи</h3>
+                    <div class="settings-group">
+                        <label>Валюта:</label>
+                        <select id="settings-currency" class="input-field">
+                            <option value="RUB">₽ Российский рубль (RUB)</option>
+                            <option value="USD">$ Доллар США (USD)</option>
+                            <option value="EUR">€ Евро (EUR)</option>
+                            <option value="BTC">₿ Bitcoin (BTC)</option>
+                            <option value="ETH">Ξ Ethereum (ETH)</option>
+                        </select>
+                    </div>
+                    <div class="settings-group">
+                        <label>Курс валют (1 USD = ? RUB):</label>
+                        <input type="number" id="currency-rate" class="input-field" value="100" min="1" step="0.01">
+                    </div>
+                    <div class="settings-group">
+                        <label>Предпочитаемый способ оплаты:</label>
+                        <select id="preferred-payment" class="input-field">
+                            <option value="card">💳 Банковская карта</option>
+                            <option value="crypto">₿ Криптовалюта</option>
+                            <option value="wallet">💼 Электронный кошелек</option>
+                            <option value="bank">🏦 Банковский перевод</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🎮 Игровые настройки</h3>
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="auto-spin" class="checkbox">
+                            Автоматический спин в слотах
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="quick-bet" class="checkbox">
+                            Быстрая ставка (двойной клик)
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="sound-effects" class="checkbox" checked>
+                            Звуковые эффекты
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="background-music" class="checkbox">
+                            Фоновая музыка
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <label>Громкость звуков:</label>
+                        <input type="range" id="sound-volume" min="0" max="100" value="50" class="slider">
+                        <span id="volume-value">50%</span>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🎨 Внешний вид</h3>
+                    <div class="settings-group">
+                        <label>Тема оформления:</label>
+                        <select id="theme-select" class="input-field">
+                            <option value="dark">🌙 Темная (по умолчанию)</option>
+                            <option value="darker">⚫ Очень темная</option>
+                            <option value="gold">✨ Золотая</option>
+                            <option value="neon">💡 Неоновая</option>
+                        </select>
+                    </div>
+                    <div class="settings-group">
+                        <label>Размер шрифта:</label>
+                        <select id="font-size" class="input-field">
+                            <option value="small">Маленький</option>
+                            <option value="medium" selected>Средний</option>
+                            <option value="large">Большой</option>
+                        </select>
+                    </div>
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="animations" class="checkbox" checked>
+                            Анимации и эффекты
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="fullscreen" class="checkbox">
+                            Полноэкранный режим
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🔔 Уведомления</h3>
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="notify-wins" class="checkbox" checked>
+                            Уведомления о выигрышах
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="notify-bonuses" class="checkbox" checked>
+                            Уведомления о бонусах
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="notify-balance" class="checkbox">
+                            Уведомления о балансе
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🔒 Безопасность</h3>
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="two-factor" class="checkbox">
+                            Двухфакторная аутентификация
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="session-timeout" class="checkbox" checked>
+                            Автоматический выход при бездействии
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <label>Таймаут сессии (минуты):</label>
+                        <input type="number" id="session-timeout-minutes" class="input-field" value="30" min="5" max="120">
+                    </div>
+                </div>
+
+                <div class="settings-actions">
+                    <button id="save-settings-btn" class="btn-primary">💾 Сохранить все настройки</button>
+                    <button id="reset-settings-btn" class="btn-secondary">🔄 Сбросить к умолчаниям</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран пополнения/вывода -->
+        <div id="transaction-screen" class="screen modal-overlay">
+            <div class="modal-content">
+                <button class="modal-close" id="close-transaction">×</button>
+                <h2 id="transaction-title">Пополнение</h2>
+                <div class="transaction-form">
+                    <label>Сумма (₽):</label>
+                    <input type="number" id="transaction-amount" min="100" step="100" value="1000">
+                    <label>Способ:</label>
+                    <select id="transaction-method">
+                        <option value="card">Банковская карта</option>
+                        <option value="crypto">Криптовалюта</option>
+                        <option value="wallet">Электронный кошелек</option>
+                    </select>
+                    <button id="confirm-transaction" class="btn-primary">Подтвердить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Чат поддержки -->
+        <div id="support-chat" class="support-widget">
+            <div class="chat-header">
+                <span>💬 Поддержка</span>
+                <button id="toggle-chat" class="chat-toggle">−</button>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot">
+                    <div class="message-content">Добро пожаловать! Чем могу помочь?</div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Введите сообщение...">
+                <button id="send-message-btn">Отправить</button>
+            </div>
+        </div>
+
+        <!-- Streamer Mode Debug Overlay -->
+        <div id="streamer-overlay" class="streamer-overlay hidden">
+            <div class="streamer-header">
+                <span>🔴 LIVE - Streamer Mode</span>
+                <button id="close-streamer-overlay" class="streamer-close">×</button>
+            </div>
+            <div class="streamer-content">
+                <!-- Balance Info -->
+                <div class="streamer-section">
+                    <h4>Balance Info</h4>
+                    <div class="streamer-info-item">
+                        <span class="streamer-label">Current Balance:</span>
+                        <span class="streamer-value" id="streamer-current-balance">$0</span>
+                    </div>
+                    <div class="streamer-info-item">
+                        <span class="streamer-label">Balance Change (Last Game):</span>
+                        <span class="streamer-value" id="streamer-balance-change">$0</span>
+                    </div>
+                </div>
+
+                <!-- Recent Games -->
+                <div class="streamer-section">
+                    <h4>Recent Games</h4>
+                    <div id="streamer-recent-games" class="streamer-games-list">
+                        <div class="streamer-no-games">No games yet</div>
+                    </div>
+                </div>
+
+                <!-- Session Stats -->
+                <div class="streamer-section">
+                    <h4>Session Stats</h4>
+                    <div class="streamer-info-item">
+                        <span class="streamer-label">Games Played:</span>
+                        <span class="streamer-value" id="streamer-games-played">0</span>
+                    </div>
+                    <div class="streamer-info-item">
+                        <span class="streamer-label">Total Wins:</span>
+                        <span class="streamer-value streamer-positive" id="streamer-total-wins">$0</span>
+                    </div>
+                    <div class="streamer-info-item">
+                        <span class="streamer-label">Total Losses:</span>
+                        <span class="streamer-value streamer-negative" id="streamer-total-losses">$0</span>
+                    </div>
+                    <div class="streamer-info-item">
+                        <span class="streamer-label">Net Result:</span>
+                        <span class="streamer-value" id="streamer-net-result">$0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Проверка загрузки Chart.js
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js не загружен!');
+            document.body.innerHTML += '<div style="position:fixed;top:0;left:0;right:0;background:red;color:white;padding:20px;z-index:10000;">Ошибка: Chart.js не загружен. Проверьте интернет-соединение.</div>';
+        }
+    </script>
+    <script src="js/app.js"></script>
+    <script src="js/games/slots.js"></script>
+    <script src="js/games/blackjack.js"></script>
+    <script src="js/games/roulette.js"></script>
+    <script src="js/support-chat.js"></script>
+    <script src="js/streamer-mode.js"></script>
+    <script>
+        // Финальная проверка
+        window.addEventListener('error', (event) => {
+            console.error('Глобальная ошибка:', event.error);
+        });
+        console.log('Все скрипты загружены');
+    </script>
+</body>
+</html>
+

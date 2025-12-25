@@ -1,0 +1,51 @@
+{
+  "name": "premium-casino",
+  "version": "1.0.0",
+  "description": "Премиальное казино приложение на Electron",
+  "main": "main.js",
+  "scripts": {
+    "postinstall": "@electron/rebuild --only better-sqlite3",
+    "rebuild": "@electron/rebuild --only better-sqlite3",
+    "rebuild-all": "electron-rebuild",
+    "start": "electron .",
+    "build": "electron-builder",
+    "dev": "electron . --dev"
+  },
+  "keywords": [
+    "casino",
+    "electron",
+    "gambling"
+  ],
+  "author": "Premium Casino Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.2",
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "better-sqlite3": "^9.2.2",
+    "chart.js": "^4.4.0"
+  },
+  "build": {
+    "appId": "com.premiumcasino.app",
+    "productName": "Premium Casino",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
