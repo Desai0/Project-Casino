@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino Client</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <!-- Chart.js for graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- LOGIN OVERLAY -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h1 style="margin-bottom:20px; font-family: var(--font-serif);">CASINO</h1>
+            <form id="login-form">
+                <input type="text" id="username" placeholder="Login" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit">ENTER</button>
+            </form>
+            <p id="login-error" style="color:red; margin-top:10px;"></p>
+        </div>
+    </div>
+
+    <!-- APP HEADER (Always visible after login) -->
+    <header id="app-header" class="app-header hidden">
+        <div class="header-user-section">
+            <div class="header-avatar" id="header-avatar">M</div>
+            <div class="header-balance-pill">
+                <span>$</span> <span id="header-balance">0</span>
+            </div>
+        </div>
+        
+        <nav class="nav-tabs">
+            <div class="nav-tab active" data-target="profile-screen">Profile</div>
+            <div class="nav-tab" data-target="menu-screen">Games</div>
+            <div class="nav-tab" data-target="admin-screen" style="display: none;">Admin</div>
+            <div class="nav-tab" id="logout-btn">Logout</div>
+        </nav>
+        
+        <!-- Three dots menu icon from screenshot? optional -->
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <div id="main-wrapper" class="main-content hidden">
+
+        <!-- PROFILE SCREEN -->
+        <div id="profile-screen" class="screen-section active">
+            
+            <div class="profile-grid">
+                <!-- Left: Graph -->
+                <div class="profile-left">
+                    <div class="profile-header-info">
+                        <div class="profile-avatar-section">
+                            <div class="profile-avatar-container">
+                                <img id="profile-avatar-img" src="" alt="Avatar" class="profile-avatar-image hidden">
+                                <div class="profile-avatar-placeholder" id="profile-avatar-placeholder">M</div>
+                                <input type="file" id="avatar-upload" accept="image/*" style="display:none;">
+                                <label for="avatar-upload" class="avatar-upload-label" title="Change avatar">📷</label>
+                            </div>
+                            <div class="profile-name-section">
+                                <div class="big-username-container">
+                                    <div class="big-username" id="profile-username">[Username]</div>
+                                    <button id="edit-nickname-btn" class="edit-btn" title="Edit nickname">✏️</button>
+                                </div>
+                                <input type="text" id="nickname-edit-input" class="nickname-edit-input hidden" placeholder="Enter nickname">
+                                <div class="big-balance-pill">
+                                    Balance: <span id="profile-balance">2 007</span> <span>$</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="graph-container">
+                        <canvas id="balanceChart"></canvas>
+                        <!-- User B task: Implement graph logic -->
+                    </div>
+                </div>
+
+                <!-- Right: History -->
+                <div class="profile-right">
+                    <div class="history-title">Balance history:</div>
+                    <div class="history-list" id="history-list">
+                        <!-- Items will be injected by JS -->
+                        <!-- Example item for structure:
+                        <div class="history-card">
+                            <div class="history-icon">♠️</div>
+                            <div class="history-info">
+                                <div class="history-game-name">21</div>
+                                <div class="history-date">Date: 2007.06.09</div>
+                            </div>
+                            <div class="history-amount win-text">+ 436,2 $</div>
+                        </div>
+                        -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN MENU SCREEN (Games) -->
+        <div id="menu-screen" class="screen-section">
+            <div class="menu-grid">
+                <!-- Column 1: 21 -->
+                <div class="menu-column">
+                    <div class="menu-col-header">21</div>
+                    <div class="games-list">
+                        <div class="game-item" onclick="launchGame('blackjack')">
+                            <div class="game-thumb-icon">♠️</div>
+                        </div>
+                         <div class="game-item"><div class="game-thumb-icon">♠️</div></div>
+                         <div class="game-item"><div class="game-thumb-icon">♠️</div></div>
+                         <div class="game-item"><div class="game-thumb-icon">♠️</div></div>
+                    </div>
+                </div>
+                
+                <!-- Column 2: Roulette -->
+                <div class="menu-column">
+                    <div class="menu-col-header">Roulette</div>
+                    <div class="games-list">
+                        <div class="game-item" onclick="launchGame('roulette')">
+                             <div class="game-thumb-icon">🔴</div>
+                        </div>
+                        <div class="game-item"><div class="game-thumb-icon">🔴</div></div>
+                        <div class="game-item"><div class="game-thumb-icon">🔴</div></div>
+                        <div class="game-item"><div class="game-thumb-icon">🔴</div></div>
+                    </div>
+                </div>
+
+                <!-- Column 3: Slots -->
+                <div class="menu-column">
+                    <div class="menu-col-header">Slots</div>
+                    <div class="games-list">
+                        <div class="game-item" onclick="launchGame('slots')">
+                             <div class="game-thumb-icon">🍒</div>
+                        </div>
+                        <div class="game-item"><div class="game-thumb-icon">🍒</div></div>
+                        <div class="game-item"><div class="game-thumb-icon">🍒</div></div>
+                        <div class="game-item"><div class="game-thumb-icon">🍒</div></div>
+                        <div class="game-item"><div class="game-thumb-icon">🍒</div></div>
+                        <div class="game-item"><div class="game-thumb-icon">🍒</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN PANEL SCREEN -->
+        <div id="admin-screen" class="screen-section">
+            <div class="admin-panel">
+                <div class="admin-header">
+                    <h2>Admin Panel</h2>
+                    <div class="admin-messages">
+                        <div id="admin-error" class="error-message" style="display: none;"></div>
+                        <div id="admin-success" class="success-message" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Users Management -->
+                <div class="admin-section">
+                    <h3>Users Management</h3>
+                    <div class="users-table-container">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Nickname</th>
+                                    <th>Role</th>
+                                    <th>Balance</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Statistics Section -->
+                <div class="admin-section">
+                    <h3>Statistics</h3>
+                    <div class="stats-controls">
+                        <div class="date-range">
+                            <label>From:</label>
+                            <input type="date" id="stats-start-date">
+                            <label>To:</label>
+                            <input type="date" id="stats-end-date">
+                            <button id="load-all-stats-btn" class="action-btn">Load All Stats</button>
+                        </div>
+                    </div>
+                    <div id="all-users-stats" class="all-stats-container">
+                        <!-- All users statistics will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- GAME CONTAINER (Overlay) -->
+    <div id="game-container" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:5000;">
+        <button id="close-game" style="position:absolute; top:20px; right:20px; z-index:5001;">EXIT</button>
+        <div id="game-render-area" style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; color:white;">
+            <!-- User B Game Area -->
+        </div>
+    </div>
+
+    <!-- USER EDIT MODAL -->
+    <div id="user-edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit User</h3>
+                <button id="close-edit-modal" class="close-btn">&times;</button>
+            </div>
+            <form id="user-edit-form" class="modal-body">
+                <input type="hidden" id="edit-user-id">
+                
+                <div class="form-group">
+                    <label for="edit-username">Username:</label>
+                    <input type="text" id="edit-username" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-nickname">Nickname:</label>
+                    <input type="text" id="edit-nickname" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-balance">Balance:</label>
+                    <input type="number" id="edit-balance" min="0" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-role">Role:</label>
+                    <select id="edit-role" required>
+                        <option value="1">User</option>
+                        <option value="2">Admin</option>
+                        <option value="3">Streamer</option>
+                    </select>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" id="cancel-edit" class="action-btn secondary">Cancel</button>
+                    <button type="submit" class="action-btn primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- STATISTICS MODAL -->
+    <div id="statistics-modal" class="modal hidden">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>User Statistics - <span id="stats-user-name"></span></h3>
+                <button id="close-stats-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-overview">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Games:</span>
+                            <span class="stat-value" id="stats-total-games">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Bets:</span>
+                            <span class="stat-value" id="stats-total-bets">$0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Wins:</span>
+                            <span class="stat-value" id="stats-total-wins">$0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Losses:</span>
+                            <span class="stat-value" id="stats-total-losses">$0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Net Result:</span>
+                            <span class="stat-value" id="stats-net-result">$0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-chart-container">
+                    <canvas id="statistics-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            <script src="renderer.js" type="module"></script>
+            <script>
+        // Simple tab switcher helper
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                if(tab.id === 'logout-btn') {
+                    // Logout functionality
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    document.getElementById('app-header').classList.add('hidden');
+                    document.getElementById('main-wrapper').classList.add('hidden');
+                    // Clear form
+                    const loginForm = document.getElementById('login-form');
+                    if(loginForm) {
+                        loginForm.reset();
+                    }
+                    // Clear user data
+                    window.currentUserId = null;
+                    window.currentUser = null;
+                    // Hide assistant
+                    if (window.hideAssistant) {
+                        window.hideAssistant();
+                    }
+                    return;
+                }
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                document.querySelectorAll('.screen-section').forEach(s => s.classList.remove('active'));
+                document.getElementById(tab.getAttribute('data-target')).classList.add('active');
+            });
+        });
+
+        // launchGame определен в games.js через window.launchGame
+    </script>
+</body>
+</html>
